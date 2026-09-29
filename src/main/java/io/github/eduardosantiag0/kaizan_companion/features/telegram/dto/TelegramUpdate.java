@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.dto.telegram;
+package io.github.eduardosantiag0.kaizan_companion.features.telegram.dto;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -9,4 +9,3 @@ public class TelegramUpdate extends Update {
         this.message = message;
     }
 }
-//        (TelegramMessage message) {}

@@ -1,12 +1,8 @@
-package io.github.eduardosantiag0.kaizan_companion.services;
+package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 
-import io.github.eduardosantiag0.kaizan_companion.interfaces.ICommands;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisService;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
-
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 @Service
 public class CommandHandler implements ICommands {
@@ -18,40 +14,25 @@ public class CommandHandler implements ICommands {
     }
 
     public void execute(Update update) {
-        String[] fullMessage = new String[]{update.getMessage().getText()};
+
+        String[] fullMessage = update.getMessage().getText().split("\\s+");;
+//        String[] fullMessage = new String[]{update.getMessage().getText()};
         String command = fullMessage[0];
 
         switch (command) {
             case "/study" -> {
-                String url = fullMessage[2];
+                String url = fullMessage[1];
                 study(url);
             }
-
-
-        }
-
-    }
-
-
-    public static boolean isValidURL(String urlString) {
-        try {
-            URL url = new URL(urlString);
-            url.toURI();
-            return true;
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
         }
     }
+
+
 
 
     @Override
     public void study(String url) {
-        // Prepara o commando
-        isValidURL(url);
         analysisService.study(url);
-
     }
 
     @Override

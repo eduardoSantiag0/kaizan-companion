@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.interfaces;
+package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 
 public interface ICommands {
     void study(String url);

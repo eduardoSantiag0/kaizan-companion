@@ -1,7 +1,6 @@
-package io.github.eduardosantiag0.kaizan_companion.controllers;
+package io.github.eduardosantiag0.kaizan_companion.features.telegram.controllers;
 
-import io.github.eduardosantiag0.kaizan_companion.dto.telegram.TelegramUpdate;
-import io.github.eduardosantiag0.kaizan_companion.services.TelegramBotService;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.enums.ECommands;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,9 +11,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @RestController
 @RequestMapping("/kaizan/api/v1")
 public class TelegramController {
-    private final TelegramBotService service;
+    private final ECommands.TelegramBotService service;
 
-    public TelegramController(TelegramBotService service) {
+    public TelegramController(ECommands.TelegramBotService service) {
         this.service = service;
     }
 
