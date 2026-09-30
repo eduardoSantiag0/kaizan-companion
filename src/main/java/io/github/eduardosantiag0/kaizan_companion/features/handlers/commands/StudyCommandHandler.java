@@ -9,7 +9,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandl
 import io.github.eduardosantiag0.kaizan_companion.features.sources.usecases.DownloadGameByIdUseCase;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.TelegramSendMessage;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -47,6 +47,7 @@ public class StudyCommandHandler implements CommandHandler {
         if (!isValidURL(url)) {
             return;
         }
+
         byte[]fileData =  downloadGameByIdUseCase.execute(url);
 
         if (fileData == null) {
@@ -74,7 +75,7 @@ public class StudyCommandHandler implements CommandHandler {
         telegramChatRepository.save(entity);
 
         notificationService.sendMessageToChat(
-                new TelegramSendMessage(chatId, fileData,
+                new ReplyWithFile(chatId, fileData,
                         MessageFormatter.formatGameMessage(fileName)
                 )
         );

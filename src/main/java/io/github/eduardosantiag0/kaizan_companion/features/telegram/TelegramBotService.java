@@ -3,6 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 
 //import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisService;
 
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.AddOgsCommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.StudyCommandHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ public class TelegramBotService
     private final String botName;
     private final String botToken;
     private final StudyCommandHandler studyCommandHandler;
+    private final AddOgsCommandHandler addOgsCommandHandler;
 
 
 
@@ -47,10 +49,11 @@ public class TelegramBotService
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
             StudyCommandHandler studyCommandHandler,
-            TelegramClient telegramClient ) {
+            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler) {
         this.botName = botName;
         this.botToken = botToken;
         this.studyCommandHandler = studyCommandHandler;
+        this.addOgsCommandHandler = addOgsCommandHandler;
     }
 
     public String getBotUsername() {
@@ -84,6 +87,9 @@ public class TelegramBotService
         switch (command) {
             case "/study" -> {
                 studyCommandHandler.executeCommand(update);
+            }
+            case "/add-ogs-account" -> {
+                addOgsCommandHandler.executeCommand(update);
             }
         }
     }
