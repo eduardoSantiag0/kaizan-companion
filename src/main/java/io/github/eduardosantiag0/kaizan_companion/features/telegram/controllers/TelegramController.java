@@ -1,6 +1,8 @@
 package io.github.eduardosantiag0.kaizan_companion.features.telegram.controllers;
 
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.enums.ECommands;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.TelegramBotService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,17 +13,19 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @RestController
 @RequestMapping("/kaizan/api/v1")
 public class TelegramController {
-    private final ECommands.TelegramBotService service;
+    private final TelegramBotService service;
+    private final ObjectMapper telegramObjectMapper = new ObjectMapper();
 
-    public TelegramController(ECommands.TelegramBotService service) {
+    public TelegramController(TelegramBotService service) {
         this.service = service;
     }
 
     @PostMapping
     public ResponseEntity<Void> onUpdateReceived(
-            @RequestBody Update update) {
+            @RequestBody String rawUpdate) throws JsonProcessingException {
 
-        service.onUpdateReceived(update);
+        Update update = telegramObjectMapper.readValue(rawUpdate, Update.class);
+        service.consume(update);
         return ResponseEntity.ok().build();
     }
 }

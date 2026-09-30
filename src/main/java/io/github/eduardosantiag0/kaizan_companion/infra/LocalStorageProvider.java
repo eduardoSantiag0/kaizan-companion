@@ -50,7 +50,8 @@ public class LocalStorageProvider implements IStorageProvider{
         try {
             Files.write(filePath, file);
 
-            return filePath.toAbsolutePath().toString();
+//            return filePath.toAbsolutePath().toString();
+            return fileName;
 
         } catch (IOException e) {
             throw new StorageException(
