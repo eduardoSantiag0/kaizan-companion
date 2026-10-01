@@ -2,6 +2,7 @@ package io.github.eduardosantiag0.kaizan_companion.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +31,10 @@ public class TelegramChatEntity {
     @Setter
     @Column(name = "ogs_account_name")
     private String ogsAccountName;
+
+    @Setter
+    @Column(name = "ogs_account_id")
+    private Long ogsAccountId;
 
     @Setter
     @Column(name = "email")

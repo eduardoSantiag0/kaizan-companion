@@ -15,6 +15,7 @@ public class FileUploadService {
 
     @Transactional()
     public String uploadFile(byte[] data) {
+
         return storageProvider.store(data);
     }
 }

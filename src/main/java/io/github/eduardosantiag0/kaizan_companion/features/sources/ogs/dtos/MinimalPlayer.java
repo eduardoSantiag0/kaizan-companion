@@ -1,17 +1,19 @@
 package io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record PlayerInfo(
-        int id,
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record MinimalPlayer (
+        Long id,
         String username,
-        String country,
         String icon,
         RatingDTO ratings,
         String ranking,
-        boolean professional,
+        String country,
         @JsonProperty("ui_class")
-        String uiClass
+        String uiClass,
+        boolean professional
 
 ) {
     record RatingDTO(

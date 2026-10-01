@@ -4,19 +4,19 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEn
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.OgsPlayerDTO;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.OgsSearchByUsernameDTO;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.PlayerInfo;
+import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.MinimalPlayer;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+@Slf4j
 @Service
 public class AddOgsCommandHandler implements CommandHandler {
 
@@ -58,14 +58,30 @@ public class AddOgsCommandHandler implements CommandHandler {
                 throw new RuntimeException("More than one player was found");
             }
 
-            PlayerInfo playerInfo = dto.results().get(0);
+            MinimalPlayer playerInfo = dto.results().get(0);
+
+            log.debug(playerInfo.toString());
 
             Long chatId = update.getMessage().getChatId();
+            var chat = update.getMessage().getChat();
 
-            TelegramChatEntity entity = telegramChatRepository.findById(chatId)
-                            .orElseThrow(() -> new RuntimeException("Chat not found"));
+            TelegramChatEntity entity = telegramChatRepository
+                    .findById(chatId)
+                    .orElseGet(() -> new TelegramChatEntity(
+                            chatId,
+                            chat.getFirstName(),
+                            chat.getUserName(),
+                            chat.getType(),
+                            null,
+                            null,
+                            null,
+                            true
+                    ));
 
             entity.setOgsAccountName(playerInfo.username());
+            entity.setOgsAccountId(playerInfo.id());
+
+            telegramChatRepository.save(entity);
 
             notificationService.sendMessageToChat(new ReplyWithText(
                     chatId, MessageFormatter.formatOgsAcccountLinked(playerInfo)

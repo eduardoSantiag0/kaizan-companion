@@ -50,8 +50,16 @@ public class NotificationService {
         logger.info("\n\nSucesso! \n\n" + response.getText());
 
     }
+
+    public void sendErrorMessage (ReplyWithText message) {
+        SendMessage response = SendMessage.builder()
+                .chatId(message.chatId())
+                .text(message.text())
+                .build();
+
+
+        logger.info(response.getText());
+
+    }
 }
-//
-//Sucesso!
-//SendMessage(chatId=4923, messageThreadId=null, directMessagesTopicId=null, text=Account linked: SuperDU69
-//        Now you can track your studies more easile!, parseMode=null, disableWebPagePreview=null, disableNotification=null, replyToMessageId=null, replyMarkup=null, entities=null, allowSendingWithoutReply=null, protectContent=null, linkPreviewOptions=null, replyParameters=null, businessConnectionId=null, messageEffectId=null, allowPaidBroadcast=null, suggestedPostParameters=null, ephemeralMessageParameters=null)
+

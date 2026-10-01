@@ -4,6 +4,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 //import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisService;
 
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.AddOgsCommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.LastGameCommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.StudyCommandHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +36,13 @@ public class TelegramBotService
     private final String botToken;
     private final StudyCommandHandler studyCommandHandler;
     private final AddOgsCommandHandler addOgsCommandHandler;
-
+    private final LastGameCommandHandler lastGameCommandHandler;
 
 
     private static final List<BotCommand> commandList = List.of(
             new BotCommand(STUDY.name(), "Upload your SGF to analyse your game"),
             new BotCommand(COLLECTION.name(), "Upload several games at once"),
-            new BotCommand(LATEST.name(), "Get your latest game fast"),
+            new BotCommand(LAST_GAME.name(), "Get your latest game fast"),
             new BotCommand(ADD_MY_OGS.name(), "Add your OGS username to track your games")
     );
 
@@ -49,11 +50,12 @@ public class TelegramBotService
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
             StudyCommandHandler studyCommandHandler,
-            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler) {
+            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler) {
         this.botName = botName;
         this.botToken = botToken;
         this.studyCommandHandler = studyCommandHandler;
         this.addOgsCommandHandler = addOgsCommandHandler;
+        this.lastGameCommandHandler = lastGameCommandHandler;
     }
 
     public String getBotUsername() {
@@ -85,12 +87,16 @@ public class TelegramBotService
 
 
         switch (command) {
-            case "/study" -> {
+            case "/study" ->
                 studyCommandHandler.executeCommand(update);
-            }
-            case "/add-ogs-account" -> {
+
+            case "/add-ogs-account" ->
                 addOgsCommandHandler.executeCommand(update);
-            }
+
+            case "/last_game" ->
+                lastGameCommandHandler.executeCommand(update);
+
+
         }
     }
 
