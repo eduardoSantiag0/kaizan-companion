@@ -4,6 +4,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEn
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.CustomExceptionHandler;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging.AnalysisProducer;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
@@ -14,7 +15,6 @@ import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -29,14 +29,16 @@ public class StudyCommandHandler implements CommandHandler {
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
     private final IStorageProvider storageProvider;
+    private final AnalysisProducer analysisProducer;
 
     private final Logger logger = LoggerFactory.getLogger(CustomExceptionHandler.class);
 
-    public StudyCommandHandler(SourceContextStrategy sourceContextStrategy, TelegramChatRepository chatRepository, NotificationService notificationService, IStorageProvider storageProvider) {
+    public StudyCommandHandler(SourceContextStrategy sourceContextStrategy, TelegramChatRepository chatRepository, NotificationService notificationService, IStorageProvider storageProvider, AnalysisProducer analysisProducer) {
         this.sourceContextStrategy = sourceContextStrategy;
         this.telegramChatRepository = chatRepository;
         this.notificationService = notificationService;
         this.storageProvider = storageProvider;
+        this.analysisProducer = analysisProducer;
     }
 
     @Override
@@ -67,7 +69,6 @@ public class StudyCommandHandler implements CommandHandler {
             return;
         }
 
-        storageProvider.store(fileData.getContentAsByteArray());
 
         Long chatId = update.getMessage().getChatId();
         var chat = update.getMessage().getChat();
@@ -86,6 +87,10 @@ public class StudyCommandHandler implements CommandHandler {
 
         entity.setWaitingForAnalysis(true);
         telegramChatRepository.save(entity);
+
+        analysisProducer.execute(entity, fileData);
+
+        storageProvider.store(fileData.getContentAsByteArray());
 
         notificationService.sendMessageToChat(
                 new ReplyWithFile(chatId, fileData.getContentAsByteArray(),

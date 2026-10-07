@@ -1,0 +1,97 @@
+ARG CUDA_VERSION=11.8.0
+ARG OS_VERSION=20.04
+ARG TRT_VERSION=8.5.2
+
+
+# ============================================================
+# Runtime
+# ============================================================
+
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn8-runtime-ubuntu${OS_VERSION} AS tensorrt-runner
+
+ARG CUDA_VERSION
+ARG TRT_VERSION
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN v="${TRT_VERSION}-1+cuda${CUDA_VERSION%.*}" \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libnvinfer8=${v} \
+        libnvonnxparsers8=${v} \
+        libnvparsers8=${v} \
+        libnvinfer-plugin8=${v} \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# ============================================================
+# Builder
+# ============================================================
+
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn8-devel-ubuntu${OS_VERSION} AS builder
+
+ARG CUDA_VERSION
+ARG TRT_VERSION
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN v="${TRT_VERSION}-1+cuda${CUDA_VERSION%.*}" \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libnvinfer8=${v} \
+        libnvonnxparsers8=${v} \
+        libnvparsers8=${v} \
+        libnvinfer-plugin8=${v} \
+        libnvinfer-dev=${v} \
+        libnvonnxparsers-dev=${v} \
+        libnvparsers-dev=${v} \
+        libnvinfer-plugin-dev=${v} \
+        wget \
+        git \
+        zlib1g-dev \
+        libzip-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# CMake
+RUN wget \
+    https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1-linux-x86_64.sh \
+    -q -O /tmp/cmake-install.sh \
+    && chmod +x /tmp/cmake-install.sh \
+    && /tmp/cmake-install.sh --skip-license --prefix=/usr/local \
+    && rm /tmp/cmake-install.sh
+
+
+# KataGo
+WORKDIR /
+
+RUN git clone \
+    --branch v1.16.5 \
+    --depth 1 \
+    https://github.com/lightvector/KataGo.git \
+    && mkdir -p /KataGo/cpp/build
+
+WORKDIR /KataGo/cpp/build
+
+RUN cmake .. \
+    -DUSE_BACKEND=TENSORRT \
+    -DCMAKE_BUILD_TYPE=Release
+
+RUN make -j$(nproc)
+
+
+# ============================================================
+# Final image
+# ============================================================
+
+FROM tensorrt-runner
+
+WORKDIR /app
+
+COPY --from=builder /KataGo/cpp/build/katago /app/katago
+
+RUN chmod +x /app/katago
+
+ENTRYPOINT ["/app/katago"]
+
+# docker build -t meukatago:latest -f Dockerfile-Katago .
