@@ -29,7 +29,7 @@ public class NotificationService {
                 .build();
 
 
-        logger.info("\n\nSucesso! \n\n" + response.getText());
+        logger.info("\n\nSucesso! \n" + response.getText());
 //        try {
 //            telegramClient.execute(response);
 //        } catch (TelegramApiException e) {
@@ -47,7 +47,7 @@ public class NotificationService {
                 .build();
 
 
-        logger.info("\n\nSucesso! \n\n" + response.getText());
+        logger.info("\n\nSucesso!\n" + response.getText());
 
     }
 

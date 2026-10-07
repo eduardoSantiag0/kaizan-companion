@@ -19,7 +19,7 @@ import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsume
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 
 
-
+import java.io.IOException;
 import java.util.List;
 
 import static io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands.*;
@@ -81,7 +81,7 @@ public class TelegramBotService
         }
     }
 
-    private void handle(Update update) throws TelegramApiException {
+    private void handle(Update update) throws TelegramApiException, IOException {
         String[] fullMessage = update.getMessage().getText().split("\\s+");;
         String command = fullMessage[0];
 

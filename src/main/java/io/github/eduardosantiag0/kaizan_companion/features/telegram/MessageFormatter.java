@@ -21,7 +21,7 @@ public class MessageFormatter {
 
         String black = root.value("PB").orElse("desconhecido");
         String white = root.value("PW").orElse("desconhecido");
-        String players = "Jogadores: " + black + " vs " + white;
+        String players = black + " vs " + white;
 
         return "The analysis for your game was completed: " + players;
 

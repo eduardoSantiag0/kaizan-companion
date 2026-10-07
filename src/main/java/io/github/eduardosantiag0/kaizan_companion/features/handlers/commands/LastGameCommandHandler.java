@@ -4,20 +4,22 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEn
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.CustomExceptionHandler;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
-import io.github.eduardosantiag0.kaizan_companion.features.files.FileUploadService;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.usecases.DownloadLastGameUseCase;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.usecases.SourceContextStrategy;
+import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.IOException;
 
 @Service
 public class LastGameCommandHandler implements CommandHandler {
@@ -25,15 +27,15 @@ public class LastGameCommandHandler implements CommandHandler {
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
     private final SourceContextStrategy sourceContextStrategy;
-    private final FileUploadService fileUploadService;
+    private final IStorageProvider storageProvider;
 
     private final Logger logger = LoggerFactory.getLogger(CustomExceptionHandler.class);
 
-    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, DownloadLastGameUseCase downloadLastGameUseCase, SourceContextStrategy sourceContextStrategy, FileUploadService fileUploadService) {
+    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, SourceContextStrategy sourceContextStrategy, IStorageProvider storageProvider) {
         this.telegramChatRepository = telegramChatRepository;
         this.notificationService = notificationService;
         this.sourceContextStrategy = sourceContextStrategy;
-        this.fileUploadService = fileUploadService;
+        this.storageProvider = storageProvider;
     }
 
     @Override
@@ -42,8 +44,7 @@ public class LastGameCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void executeCommand(Update update) throws TelegramApiException
-    {
+    public void executeCommand(Update update) throws TelegramApiException, IOException {
         Long chatId = update.getMessage().getChatId();
 
         TelegramChatEntity entity = telegramChatRepository.findById(chatId)
@@ -55,24 +56,26 @@ public class LastGameCommandHandler implements CommandHandler {
         }
 
 
+        //TODO como resolver isso?
         ISourceStrategy source = sourceContextStrategy.setStrategy("https://online-go.com");
 
-        byte[]fileData = source.downloadLastGame(entity.getOgsAccountId());
+        ByteArrayResource fileData = source.downloadLastGame(entity.getOgsAccountId());
 
         if (fileData == null) {
             logger.error("file data is null");
             return;
         } else logger.debug(fileData.toString());
 
-        String fileName = fileUploadService.uploadFile(fileData);
+        storageProvider.store(fileData.getContentAsByteArray());
+
 
         entity.setWaitingForAnalysis(true);
         telegramChatRepository.save(entity);
 
 
         notificationService.sendMessageToChat(
-                new ReplyWithFile(chatId, fileData,
-                        MessageFormatter.formatGameMessage(fileData)
+                new ReplyWithFile(chatId, fileData.getContentAsByteArray(),
+                        MessageFormatter.formatGameMessage(String.valueOf(fileData))
                 )
         );
 
