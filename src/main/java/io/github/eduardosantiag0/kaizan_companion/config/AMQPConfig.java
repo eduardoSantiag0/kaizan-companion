@@ -6,6 +6,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -19,10 +20,28 @@ public class AMQPConfig {
 //    O Direct Exchange decide para qual fila a mensagem vai.
 //    A Quorum Queue define como essa fila armazena e protege as mensagens.
 
-    public final String EXCHANGE_NAME = "analysis.exchange";
-    public final String QUEUE_NAME = "analysis-queue";
-    public final String DLQ_NAME = "analysis.dlq";
-    public final String ROUTING_KEY = "analysis-report";
+
+    public final String EXCHANGE_NAME;
+
+    public final String QUEUE_NAME;
+    public final String DLQ_NAME;
+    public final String ROUTING_KEY;
+
+    public AMQPConfig(
+            @Value("${rabbitmq.exchange.analysis.exchange}")
+            String exchangeName,
+            @Value("${rabbitmq.exchange.analysis.queue}")
+            String queueName,
+            @Value("${rabbitmq.exchange.analysis.dlq}")
+            String dlqName,
+            @Value("${rabbitmq.exchange.analysis.routing-key}")
+            String routingKey
+    ) {
+        EXCHANGE_NAME = exchangeName;
+        QUEUE_NAME = queueName;
+        DLQ_NAME = dlqName;
+        ROUTING_KEY = routingKey;
+    }
 
 
     @Bean
