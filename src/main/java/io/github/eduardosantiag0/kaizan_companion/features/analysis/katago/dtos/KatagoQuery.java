@@ -12,8 +12,8 @@ import java.util.Optional;
 @Builder()
 public record KatagoQuery(
         String id, // An arbitrary string identifier for the query.
-        List<SgfMove> initialStone,
-        List<SgfMove> moves,
+        List<String> initialStone,
+        List<String> moves,
         String rules,
         float komi,
         int boardXSize,
@@ -22,7 +22,7 @@ public record KatagoQuery(
         Optional<String> initialPlayer,
         boolean includePolicy,
         int maxVisits,
-        OverridingSettings overrridingSettings
+        OverridingSettings overridingSettings
 ) {
     public record OverridingSettings(
             String humanSLProfile

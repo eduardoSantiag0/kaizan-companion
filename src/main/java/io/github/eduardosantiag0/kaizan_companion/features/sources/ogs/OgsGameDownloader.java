@@ -47,7 +47,7 @@ public class OgsGameDownloader implements ISourceStrategy {
         try {
             byte[] gameJson = rest.getForObject(endpoint, byte[].class);
 
-            log.debug("Obtidos da url {}", new String(gameJson, StandardCharsets.UTF_8));
+//            log.debug("Obtidos da url {}", new String(gameJson, StandardCharsets.UTF_8));
              return new ByteArrayResource(gameJson);
         } catch (RestClientException e) {
 

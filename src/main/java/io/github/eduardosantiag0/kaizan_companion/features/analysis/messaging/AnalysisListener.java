@@ -14,6 +14,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
+@RabbitListener(queues = "${rabbitmq.exchange.analysis.queue}")
 public class AnalysisListener {
 
     private final String POST_URL;
@@ -22,14 +23,13 @@ public class AnalysisListener {
 
     public AnalysisListener(
             @Value("${katago.post.url.sync}")
-            String handlerEndpoint, AnalysisAggregator aggregator) {
+            String handlerEndpoint,
+            AnalysisAggregator aggregator) {
         POST_URL = handlerEndpoint;
         this.aggregator = aggregator;
     }
 
-    @RabbitListener(queues = "analysis-queue")
     public void listen(@Payload AnalysisCreatedEvent event) {
-
         log.debug("Enviado: {}",event.katagoQuery());
 
         var request = Map.of(
