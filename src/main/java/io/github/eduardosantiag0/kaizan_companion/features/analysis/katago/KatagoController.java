@@ -21,7 +21,7 @@ public class KatagoController {
 
     @PostMapping
     public ResponseEntity<Void>  receiveAnalysis(@RequestBody RunPodResponse response) {
-        aggregator.handleResponse(response.output());
+        aggregator.handleResponse(response);
         return ResponseEntity.ok().build();
 
     }

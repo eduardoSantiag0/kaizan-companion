@@ -8,9 +8,14 @@ services:
 #    ports:
 #      - '5432'
   rabbitmq:
-    image: 'rabbitmq:latest'
+    image: 'rabbitmq:3-management'
+    container_name: 'rabbit-analysis'
     environment:
       - 'RABBITMQ_DEFAULT_PASS=admin'
       - 'RABBITMQ_DEFAULT_USER=admin'
     ports:
-      - '5672'
+      - '5672:5672'
+      - '15672:15672'
+
+
+#  http://localhost:15672

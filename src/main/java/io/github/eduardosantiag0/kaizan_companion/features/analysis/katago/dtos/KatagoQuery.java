@@ -1,19 +1,18 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.eduardosantiag0.sgf.go.SgfMove;
 import lombok.Builder;
 
 import java.util.List;
 import java.util.Optional;
 
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Builder()
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record KatagoQuery(
         String id, // An arbitrary string identifier for the query.
-        List<String> initialStone,
-        List<String> moves,
+        List<List<String>> initialStone,
+        List<List<String>> moves,
         String rules,
         float komi,
         int boardXSize,
@@ -24,6 +23,7 @@ public record KatagoQuery(
         int maxVisits,
         OverridingSettings overridingSettings
 ) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record OverridingSettings(
             String humanSLProfile
     ) {

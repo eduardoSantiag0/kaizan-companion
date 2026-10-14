@@ -1,5 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.config;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -77,6 +79,11 @@ public class AMQPConfig {
         ObjectMapper objectMapper = new ObjectMapper();
 
         objectMapper.findAndRegisterModules();
+
+        objectMapper.setVisibility(
+                PropertyAccessor.FIELD,
+                JsonAutoDetect.Visibility.ANY
+        );
 
         return new Jackson2JsonMessageConverter(objectMapper);
     }

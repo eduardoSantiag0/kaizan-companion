@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record RunPodResponse(
+        Long chatId,
         String id,
         String status,
         GameAnalysisResponse output

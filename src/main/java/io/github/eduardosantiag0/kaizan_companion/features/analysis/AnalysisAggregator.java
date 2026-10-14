@@ -1,14 +1,42 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis;
 
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos.GameAnalysisResponse;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos.RunPodResponse;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AnalysisAggregator {
-    public void handleResponse(GameAnalysisResponse response) {
+    private final NotificationService notificationService;
+    private final TelegramChatRepository chatRepository;
+
+    public AnalysisAggregator(NotificationService notificationService, TelegramChatRepository chatRepository) {
+        this.notificationService = notificationService;
+        this.chatRepository = chatRepository;
+    }
+
+    public void handleResponse(RunPodResponse response) {
         // TODO: Desserializar e persistir resultado
+//        var fileData = response.output().criticalPoints();
+
+//        TelegramChatEntity entity = chatRepository.findById(response.chatId())
+//                .orElseThrow(() -> new RuntimeException("Chat not found"));
+
+        System.out.println("CHEGOU: " +  response.toString());
+
+
         // TODO: Atualizar AnalysisJobEntity
+
         // TODO: Gerar relatório
         // TODO Chamar o notification service quando terminar
+
+//        notificationService.sendMessageToChat(
+//                new ReplyWithFile(response.chatId(), fileData.getContentAsByteArray(),
+//                        MessageFormatter.formatGameMessage(fileData.getContentAsByteArray())
+//                )
+//        );
     }
 }

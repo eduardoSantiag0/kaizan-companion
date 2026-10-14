@@ -5,7 +5,7 @@ import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import java.util.UUID;
 
 public record AnalysisDTO(
-        SgfGameTree game,
+//        String sgf,
         UUID correlationId,
         Long chatId
 ) {

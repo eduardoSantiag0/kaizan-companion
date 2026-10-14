@@ -48,7 +48,7 @@ public class LocalStorageProvider implements IStorageProvider{
     }
 
     String resolveFileName (byte[] file) {
-        logger.debug(Arrays.toString(file));
+//        logger.debug(Arrays.toString(file));
         SgfCollection collection = new SgfParser().parse(file);
         SgfGameTree game = collection.game(0);
         SgfNode root = game.root();

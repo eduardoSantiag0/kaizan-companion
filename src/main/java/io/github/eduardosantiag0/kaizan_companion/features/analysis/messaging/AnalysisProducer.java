@@ -58,12 +58,12 @@ public class AnalysisProducer {
 
         KatagoQuery query = queryBuilder.buildQuery(game, correlationId);
 
-        System.out.println("\n\n");
-        log.debug(String.valueOf(query));
+//        System.out.println("\n\n");
+//        log.debug(String.valueOf(query));
 
 
         AnalysisDTO dto = new AnalysisDTO(
-                game,
+//                game.toString(),
                 entity.getCorrelationId(),
                 entity.getChat().getChatId()
                 );

@@ -7,68 +7,107 @@ import io.github.eduardosantiag0.sgf.model.SgfNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @Slf4j
 public class KatagoQueryBuilder {
 
-    private String moveSGFtoGTP(SgfNode move) {
-        StringBuilder sBuilder = new StringBuilder();
+    private List<String> moveSGFtoGTP(SgfNode move) {
 
         if (move.hasProperty("B")) {
-            sBuilder.append("play black ");
-            String sgfCoord = move.value("B").get();
-//            sgfCoord == pc -> [p][c]
-            log.error(sgfCoord);
-            sBuilder.append(SgfCoordinate.parse(sgfCoord));
+            return List.of("b", move.value("B").get());
+
+////            sgfCoord == pc -> [p][c]
+
         } else if (move.hasProperty("W")) {
-            sBuilder.append("play white ");
-            String sgfCoord = move.value("W").get();
-            sBuilder.append(SgfCoordinate.parse(sgfCoord));
+            return List.of("w", move.value("W").get());
+
         }
-         return sBuilder.toString();
+        return null;
     }
 
-    private List<String> convertMovesSGFtoGTP(List<SgfNode> moves) {
-        // 1. Simulando jogadas sequenciais
-        // SGF: B[pd] W[dp]  <-- Adiciona duas pedras Pretas
-        // GTP: play black P16
-        // GTP: play black D4
+
+    private List<List<String>> convertMovesSGFtoGTP(List<SgfNode> moves, int boardYSize) {
+        // SGF: B[pd] W[dp]
+        // Retorno para a KataGo: [["B", "Q16"], ["W", "D4"]]
+
+        // A lista de jogadas.
+            // Jogadas  sequenciais.
+                // O par GTP):
+                    // ["black", "Q16"], ["white", "D4"]
 
         return moves.stream()
                 .map(this::moveSGFtoGTP)
+                .filter(Objects::nonNull)
+                .map(move -> {
+                    String color = move.get(0).toUpperCase();
+                    String sgfCoord = move.get(1);
+
+                    if (sgfCoord.isEmpty() || sgfCoord.equals("tt")) {
+                        return List.of(color, "pass");
+                    }
+
+                    char colChar = sgfCoord.charAt(0);
+                    String gtpCol = String.valueOf((char) ('A' + (colChar - 'a')));
+
+                    gtpCol = GTPTablePosition.POSITIONS.getOrDefault(gtpCol, gtpCol);
+
+                    char rowChar = sgfCoord.charAt(1);
+                    int gtpRow = boardYSize - (rowChar - 'a');
+
+                    String gtpCoord = gtpCol + gtpRow;
+
+                    return List.of(color, gtpCoord);
+                })
                 .toList();
     }
 
-    private List<String> convertInitialStonesToGTP(SgfNode root) {
-        // 2. Configurando o estado inicial do tabuleiro (Sem gerar histórico/passado)
-        // SGF: AB[pd][dp]
-        // GTP: set_position B P16 B D4
-
-        List<String> initialStones = new ArrayList<>();
+    private List<List<String>> convertInitialStonesToGTP(SgfNode root, int boardYSize) {
+        // SGF: AB[pd][dp] AW[dd]
+        // Retorno para KataGo: [["B", "Q16"], ["B", "D4"], ["W", "D16"]]
 
         if (!root.hasProperty("AB") && !root.hasProperty("AW")) {
-            return null;
+            return List.of(); // Retornar lista vazia é mais seguro que null para APIs JSON
         }
 
+        List<List<String>> initialStones = new ArrayList<>();
+
         if (root.hasProperty("AB")) {
-            root.values("AB").forEach((move ->
-                    initialStones.add(
-                            SgfCoordinate.parse(move).toString()
-                    )));
+            root.values("AB").forEach(sgfCoord -> {
+                String gtpCoord = convertSingleSgfToGtp(sgfCoord, boardYSize);
+                if (gtpCoord != null) {
+                    initialStones.add(List.of("B", gtpCoord));
+                }
+            });
         }
 
         if (root.hasProperty("AW")) {
-            root.values("AW").forEach((move ->
-                    initialStones.add(
-                            SgfCoordinate.parse(move).toString()
-                    )));
+            root.values("AW").forEach(sgfCoord -> {
+                String gtpCoord = convertSingleSgfToGtp(sgfCoord, boardYSize);
+                if (gtpCoord != null) {
+                    initialStones.add(List.of("W", gtpCoord));
+                }
+            });
         }
 
-        return  initialStones;
+        return initialStones;
+    }
+
+    private String convertSingleSgfToGtp(String sgfCoord, int boardYSize) {
+        if (sgfCoord == null || sgfCoord.length() < 2) {
+            return null;
+        }
+
+        char colChar = sgfCoord.charAt(0);
+        String gtpCol = String.valueOf((char) ('A' + (colChar - 'a')));
+
+        gtpCol = GTPTablePosition.POSITIONS.getOrDefault(gtpCol, gtpCol);
+
+        char rowChar = sgfCoord.charAt(1);
+        int gtpRow = boardYSize - (rowChar - 'a');
+
+        return gtpCol + gtpRow;
     }
 
     public KatagoQuery buildQuery(SgfGameTree game, UUID correlationId) {
@@ -99,8 +138,8 @@ public class KatagoQueryBuilder {
 
         return KatagoQuery.builder()
                 .id(String.valueOf(correlationId))
-                .initialStone(convertInitialStonesToGTP(game.root()))
-                .moves(convertMovesSGFtoGTP(game.moves()))
+                .initialStone(convertInitialStonesToGTP(game.root(), Integer.parseInt(size)))
+                .moves(convertMovesSGFtoGTP(game.moves(), Integer.parseInt(size)))
                 .rules(root.value("RU").get())
                 .komi(Float.parseFloat(root.value("KM").get()))
                 .boardXSize(boardXSize)

@@ -66,17 +66,34 @@ public class OgsGameDownloader implements ISourceStrategy {
                 BASE_URL +
                         "players/" +
                         playerId +
-                        "/games/?ordering=ended&page=1&page_size=1";
+                        "/games/?ordering=-ended" +
+                        "&ended__isnull=false" +
+                        "&page=1" +
+                        "&page_size=1";
 
+        System.out.println(endpoint);
         try {
+            //TODO Está dando erro:
+//            Caused by: tools.jackson.databind.exc.MismatchedInputException: Cannot deserialize value of type `java.lang.String` from Object value (token `JsonToken.START_OBJECT`)
+//            at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); byte offset: #168] (through reference chain: io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.PaginatedGameList["results"]->java.util.ArrayList[0]->io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.Game["related"])
+
             PaginatedGameList response =
                     rest.getForObject(endpoint, PaginatedGameList.class);
 
-            assert response != null;
-            String url = response
-                    .results()
-                    .get(0)
-                    .related();
+//            JSON parse error:
+//            Cannot deserialize value of type `java.lang.String`
+//            from Object value (token `JsonToken.START_OBJECT`)
+
+
+            String url = null;
+            if (response != null) {
+                url = response
+                        .results()
+                        .get(0)
+                        .related();
+            } else {
+                log.error("Resposta nula: {}", response);
+            }
 
             String gameId = url.substring(url.lastIndexOf('/') + 1);
 
