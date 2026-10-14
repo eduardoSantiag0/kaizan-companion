@@ -6,7 +6,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record GameAnalysisResponse(
-        String gameId,
+        String gameId, // id original do jogo (talvez desnecessário)
         int totalMoves,
         List<CriticalPoint> criticalPoints
 ) {}

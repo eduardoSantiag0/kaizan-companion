@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record Game(
-        String related,
-        String players,
+        RelatedInfo related,
+        String name,
         Long id,
         Long creator,
         @JsonProperty("sgf_filename")
@@ -17,4 +17,8 @@ public record Game(
         @JsonProperty("bot_detection_results")
         String botDetectionResults
 ) {
+
+    public record RelatedInfo(
+            String detail
+    ){}
 }

@@ -1,14 +1,19 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.UUID;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+//@JsonIgnoreProperties(ignoreUnknown = true)
+
+
 public record RunPodResponse(
-        Long chatId,
-        UUID correlationId,
-        String id,
-        String status,
-        GameAnalysisResponse output
-) {}
+        String id, // Id dentro do KataGo
+        JobInformations output
+
+) {
+    public record JobInformations(
+            Long chatId,
+            UUID correlationId, // correlation id do Job
+            String status,
+            GameAnalysisResponse output
+            ) {}
+}

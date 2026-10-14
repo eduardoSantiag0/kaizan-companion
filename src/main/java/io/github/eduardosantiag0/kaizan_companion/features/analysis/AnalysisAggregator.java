@@ -25,7 +25,7 @@ public class AnalysisAggregator {
 
     public void handleResponse(RunPodResponse response) {
 
-        AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.correlationId()).orElseThrow(() -> new RuntimeException("Job nao encontrado"));
+        AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.output().correlationId()).orElseThrow(() -> new RuntimeException("Job nao encontrado"));
         jobEntity.setJobStatus(JobStatus.ENGINE_ANALYSIS_DONE);
         // TODO: Desserializar e persistir resultado
 //        var fileData = response.output().criticalPoints();

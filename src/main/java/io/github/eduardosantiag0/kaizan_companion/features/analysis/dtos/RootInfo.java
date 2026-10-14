@@ -8,4 +8,5 @@ public record RootInfo(
         double scoreLead,
         int visits,
         String currentPlayer
+
 ) {}
