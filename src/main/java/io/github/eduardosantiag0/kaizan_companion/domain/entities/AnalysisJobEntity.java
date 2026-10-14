@@ -1,5 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.domain.entities;
 
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,6 +47,11 @@ public class AnalysisJobEntity {
     @Column(name = "finished_at")
     @Setter
     private Instant finishedAt;
+
+    @Column(name = "job_status")
+    @Setter
+    @Enumerated(EnumType.STRING)
+    private JobStatus jobStatus;
 
     public AnalysisJobEntity(TelegramChatEntity chat, Instant startedAt,
                              UUID correlationId) {

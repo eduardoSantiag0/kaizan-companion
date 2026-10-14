@@ -1,10 +1,11 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisAggregator;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoQuery;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.errors.KatagoErrorMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,13 +22,15 @@ public class AnalysisListener {
     private final String POST_URL;
     private final RestTemplate rest = new RestTemplate();
     private final AnalysisAggregator aggregator;
+    private final AnalysisJobRepository jobRepository;
 
     public AnalysisListener(
             @Value("${katago.post.url.sync}")
             String handlerEndpoint,
-            AnalysisAggregator aggregator) {
+            AnalysisAggregator aggregator, AnalysisJobRepository jobRepository) {
         POST_URL = handlerEndpoint;
         this.aggregator = aggregator;
+        this.jobRepository = jobRepository;
     }
 
     @RabbitListener(queues = "${rabbitmq.exchange.analysis.queue}")
@@ -38,16 +41,26 @@ public class AnalysisListener {
         );
         log.debug("Enviado: {}",request);
 
-        String  response = null;
-        response = rest.postForObject(
+        KatagoErrorMessage response = rest.postForObject(
                 POST_URL,
                 request,
-                String.class
+                KatagoErrorMessage .class
         );
 
+        AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(event.analysisDTO().correlationId()).orElseThrow(() -> new RuntimeException("Job nao encontrado"));
+
+
+        if (response != null && response.status().equals("FAILED")) {
+            jobEntity.setJobStatus(JobStatus.REQUEST_FAILED);
+            log.error("Resposta KataGo: {}", response);
+            return;
+        }
+
+
+        jobEntity.setJobStatus(JobStatus.SENT_TO_ANALYSIS);
+
         log.debug("Resposta KataGo: {}", response);
-//        "error":"Must be an array of pairs of the form: [\"b\" or \"w\", GTP board vertex]"}
-//        aggregator.handleResponse(response);
+
 
     }
 }

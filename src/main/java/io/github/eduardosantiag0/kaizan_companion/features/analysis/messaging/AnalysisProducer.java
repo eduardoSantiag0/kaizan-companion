@@ -2,9 +2,10 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisRepository;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisDTO;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoQueryBuilder;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoQuery;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
@@ -24,16 +25,16 @@ import java.util.UUID;
 @Service
 public class AnalysisProducer {
 
-    private final AnalysisRepository analysisRepository;
+    private final AnalysisJobRepository analysisJobRepository;
     private final RabbitTemplate rabbitTemplate;
     private final String QUEUE;
     private final KatagoQueryBuilder queryBuilder;
 
-    public AnalysisProducer(AnalysisRepository analysisRepository,
+    public AnalysisProducer(AnalysisJobRepository analysisJobRepository,
                             RabbitTemplate rabbitTemplate,
                             @Value("${rabbitmq.exchange.analysis.queue}")
                             String queue, KatagoQueryBuilder queryBuilder) {
-        this.analysisRepository = analysisRepository;
+        this.analysisJobRepository = analysisJobRepository;
         this.rabbitTemplate = rabbitTemplate;
         QUEUE = queue;
         this.queryBuilder = queryBuilder;
@@ -46,26 +47,22 @@ public class AnalysisProducer {
 
         UUID correlationId = UUID.randomUUID();
 
-        AnalysisJobEntity entity = new AnalysisJobEntity(chat, Instant.now(), correlationId);
+        AnalysisJobEntity jobEntity = new AnalysisJobEntity(chat, Instant.now(), correlationId);
+        jobEntity.setJobStatus(JobStatus.ANALYSIS_REQUESTED);
 
         SgfCollection collection = new SgfParser().parse(gameBytes);
 
         SgfGameTree game = collection.game(0);
 
-        entity.setLinkToSource(String.valueOf(game.root().value("PC")));
+        jobEntity.setLinkToSource(String.valueOf(game.root().value("PC")));
 
-        analysisRepository.save(entity);
+        analysisJobRepository.save(jobEntity);
 
         KatagoQuery query = queryBuilder.buildQuery(game, correlationId);
 
-//        System.out.println("\n\n");
-//        log.debug(String.valueOf(query));
-
-
         AnalysisDTO dto = new AnalysisDTO(
-//                game.toString(),
-                entity.getCorrelationId(),
-                entity.getChat().getChatId()
+                jobEntity.getCorrelationId(),
+                jobEntity.getChat().getChatId()
                 );
 
         AnalysisCreatedEvent event = new AnalysisCreatedEvent(dto, query);
