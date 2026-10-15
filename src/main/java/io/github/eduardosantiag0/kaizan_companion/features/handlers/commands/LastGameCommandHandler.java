@@ -75,7 +75,7 @@ public class LastGameCommandHandler implements CommandHandler {
 
         notificationService.sendMessageToChat(
                 new ReplyWithFile(chatId, fileData.getContentAsByteArray(),
-                        MessageFormatter.formatGameMessage(String.valueOf(fileData))
+                        MessageFormatter.requestCompleted(String.valueOf(fileData))
                 )
         );
 

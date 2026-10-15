@@ -48,13 +48,13 @@ public class AnalysisProducer {
         UUID correlationId = UUID.randomUUID();
 
         AnalysisJobEntity jobEntity = new AnalysisJobEntity(chat, Instant.now(), correlationId);
-        jobEntity.setJobStatus(JobStatus.ANALYSIS_REQUESTED);
 
         SgfCollection collection = new SgfParser().parse(gameBytes);
 
         SgfGameTree game = collection.game(0);
 
         jobEntity.setLinkToSource(String.valueOf(game.root().value("PC")));
+        jobEntity.setSgfGame(String.valueOf(game));
 
         analysisJobRepository.save(jobEntity);
 
@@ -66,6 +66,7 @@ public class AnalysisProducer {
                 );
 
         AnalysisCreatedEvent event = new AnalysisCreatedEvent(dto, query);
+        jobEntity.setJobStatus(JobStatus.ANALYSIS_REQUESTED);
         rabbitTemplate.convertAndSend(QUEUE, event);
 
     }

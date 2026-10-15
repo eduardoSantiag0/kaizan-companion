@@ -8,11 +8,11 @@ import io.github.eduardosantiag0.sgf.parser.SgfParser;
 
 public class MessageFormatter {
 
-    public static String formatGameMessage(String fileName) {
+    public static String requestCompleted (String fileName) {
         return "The analysis for your game was completed: " + fileName;
     }
 
-    public static String formatGameMessage(byte[] file) {
+    public static String requestCompleted(byte[] file) {
 
         SgfCollection collection = new SgfParser().parse(file);
         SgfGameTree game = collection.game(0);
@@ -24,6 +24,17 @@ public class MessageFormatter {
         String players = black + " vs " + white;
 
         return "The analysis for your game was completed: " + players;
+
+    }
+
+    public static String requestsIsInQueue(String correlationId) {
+        return "Your request is in queue :D\n" +
+                "ID = " + correlationId +
+                "\nTo see the progress, use /queue to see your requests\n";
+    }
+
+    public static String requestFailed() {
+        return "We were not able to process your request.\n";
 
     }
 

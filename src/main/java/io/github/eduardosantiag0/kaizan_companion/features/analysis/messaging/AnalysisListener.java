@@ -6,6 +6,9 @@ import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisAggr
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.errors.KatagoErrorMessage;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +16,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import javax.management.Notification;
 import java.util.Map;
 
 @Component
@@ -23,14 +27,16 @@ public class AnalysisListener {
     private final RestTemplate rest = new RestTemplate();
     private final AnalysisAggregator aggregator;
     private final AnalysisJobRepository jobRepository;
+    private final NotificationService notificationService;
 
     public AnalysisListener(
             @Value("${katago.post.url.sync}")
             String handlerEndpoint,
-            AnalysisAggregator aggregator, AnalysisJobRepository jobRepository) {
+            AnalysisAggregator aggregator, AnalysisJobRepository jobRepository, NotificationService notificationService) {
         POST_URL = handlerEndpoint;
         this.aggregator = aggregator;
         this.jobRepository = jobRepository;
+        this.notificationService = notificationService;
     }
 
     @RabbitListener(queues = "${rabbitmq.exchange.analysis.queue}")
@@ -53,6 +59,9 @@ public class AnalysisListener {
         if (response != null && response.status().equals("FAILED")) {
             jobEntity.setJobStatus(JobStatus.FAILED);
             log.error("Resposta KataGo: {}", response);
+            notificationService.sendMessageToChat(new ReplyWithText(
+                    event.analysisDTO().chatId(),
+                    MessageFormatter.requestFailed()));
             return;
         }
 
@@ -61,6 +70,13 @@ public class AnalysisListener {
 
         log.debug("Resposta KataGo: {}", response);
 
+        notificationService.sendMessageToChat(new ReplyWithText(
+                event.analysisDTO().chatId(),
+                MessageFormatter.requestsIsInQueue(
+                        String.valueOf(event.analysisDTO().correlationId()
+                        )
+                )
+        ));
 
     }
 }

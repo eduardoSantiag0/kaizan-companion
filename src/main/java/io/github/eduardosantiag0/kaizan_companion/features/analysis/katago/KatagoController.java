@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/kaizan/api/v1/katago")
 public class KatagoController {
@@ -20,7 +22,7 @@ public class KatagoController {
     }
 
     @PostMapping
-    public ResponseEntity<Void>  receiveAnalysis(@RequestBody RunPodResponse response) {
+    public ResponseEntity<Void>  receiveAnalysis(@RequestBody RunPodResponse response) throws IOException {
         aggregator.handleResponse(response);
         return ResponseEntity.ok().build();
 
