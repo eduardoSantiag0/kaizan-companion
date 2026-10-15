@@ -1,14 +1,11 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos.RunPodResponse;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +23,7 @@ public class AnalysisAggregator {
     public void handleResponse(RunPodResponse response) {
 
         AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.output().correlationId()).orElseThrow(() -> new RuntimeException("Job nao encontrado"));
-        jobEntity.setJobStatus(JobStatus.ENGINE_ANALYSIS_DONE);
+        jobEntity.setJobStatus(JobStatus.COMPLETED);
         // TODO: Desserializar e persistir resultado
 //        var fileData = response.output().criticalPoints();
 
@@ -40,7 +37,6 @@ public class AnalysisAggregator {
 
         // TODO: Gerar relatório
         // TODO Chamar o notification service quando terminar
-        jobEntity.setJobStatus(JobStatus.ANALYSIS_COMPLETED);
 
 //        notificationService.sendMessageToChat(
 //                new ReplyWithFile(response.chatId(), fileData.getContentAsByteArray(),

@@ -2,11 +2,11 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos;
 
 public enum JobStatus {
     ANALYSIS_REQUESTED,
-    ANALYSIS_CANCELED,
-    SENT_TO_ANALYSIS,
-    REQUEST_FAILED,
-    ENGINE_ANALYSIS_DONE,
-    ANALYSIS_COMPLETED;
+    CANCELED,
+    FAILED,
+    IN_QUEUE,
+    COMPLETED,
+    TIME_OUT;
 
     public String getName() {
         return this.name();

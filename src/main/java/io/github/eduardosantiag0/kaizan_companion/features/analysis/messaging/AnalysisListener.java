@@ -51,13 +51,13 @@ public class AnalysisListener {
 
 
         if (response != null && response.status().equals("FAILED")) {
-            jobEntity.setJobStatus(JobStatus.REQUEST_FAILED);
+            jobEntity.setJobStatus(JobStatus.FAILED);
             log.error("Resposta KataGo: {}", response);
             return;
         }
 
 
-        jobEntity.setJobStatus(JobStatus.SENT_TO_ANALYSIS);
+        jobEntity.setJobStatus(JobStatus.IN_QUEUE);
 
         log.debug("Resposta KataGo: {}", response);
 

@@ -14,6 +14,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
