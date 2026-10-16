@@ -1,18 +1,13 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoResponse;
 
 
-enum Phase {
-    opening,
-    middlegame,
-    endgame
-}
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CriticalPoint(
-        Phase phase,
+        GamePhase phase,
         int turn,
         String player,
         String move,

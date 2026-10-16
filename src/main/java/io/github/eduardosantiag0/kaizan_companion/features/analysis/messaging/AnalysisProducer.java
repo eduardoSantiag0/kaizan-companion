@@ -5,7 +5,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEn
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisDTO;
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoQueryBuilder;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoQuery;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
@@ -54,7 +54,7 @@ public class AnalysisProducer {
         SgfGameTree game = collection.game(0);
 
         jobEntity.setLinkToSource(String.valueOf(game.root().value("PC")));
-        jobEntity.setSgfGame(String.valueOf(game));
+        jobEntity.setOriginalGame(String.valueOf(game));
 
         analysisJobRepository.save(jobEntity);
 

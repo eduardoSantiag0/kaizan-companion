@@ -1,22 +1,19 @@
 package io.github.eduardosantiag0.kaizan_companion.domain.entities;
 
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
-import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "analysis_job_db")
 @Getter
+@EntityListeners(AuditingEntityListener.class)
 public class AnalysisJobEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,10 +27,31 @@ public class AnalysisJobEntity {
     @JoinColumn(name = "chat_id", nullable = false)
     private TelegramChatEntity chat;
 
-    @Column(name = "sgf_game",
+    @Column(name = "original_game",
         columnDefinition = "TEXT")
     @Setter
-    private String sgfGame;
+    @Getter
+    private String originalGame;
+
+    @Column(name = "opening_analysed",
+            columnDefinition = "TEXT")
+    @Setter
+    private String openingAnalysed;
+
+    @Column(name = "midgame_analysed",
+            columnDefinition = "TEXT")
+    @Setter
+    private String middlegameAnalysed;
+
+    @Column(name = "endgame_analysed",
+            columnDefinition = "TEXT")
+    @Setter
+    private String endgameAnalysed;
+
+    @Column(name = "full_analysed",
+            columnDefinition = "TEXT")
+    @Setter
+    private String fullAnalysedGame;
 
     @Column(name = "link_source")
     @Setter
@@ -51,10 +69,6 @@ public class AnalysisJobEntity {
     @Column(name = "last_modified_at")
     private Instant lastModifiedAt;
 
-    @Column(name = "is_finished")
-    @Setter
-    private boolean isFinished;
-
     @Column(name = "finished_at")
     @Setter
     private Instant finishedAt;
@@ -69,7 +83,6 @@ public class AnalysisJobEntity {
         this.chat = chat;
         this.startedAt = startedAt;
         this.correlationId = correlationId;
-        this.isFinished = false;
     }
 
     public AnalysisJobEntity() {

@@ -4,7 +4,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEnt
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisAggregator;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.JobStatus;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.errors.KatagoErrorMessage;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
@@ -16,7 +16,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import javax.management.Notification;
 import java.util.Map;
 
 @Component

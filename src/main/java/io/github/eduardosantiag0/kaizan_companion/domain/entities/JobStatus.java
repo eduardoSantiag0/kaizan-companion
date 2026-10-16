@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos;
+package io.github.eduardosantiag0.kaizan_companion.domain.entities;
 
 public enum JobStatus {
     ANALYSIS_REQUESTED,
