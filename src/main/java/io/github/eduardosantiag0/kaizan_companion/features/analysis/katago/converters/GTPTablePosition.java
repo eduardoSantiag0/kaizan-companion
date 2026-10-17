@@ -1,6 +1,5 @@
-package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago;
+package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.converters;
 
-import java.util.HashSet;
 import java.util.Map;
 
 public class GTPTablePosition {

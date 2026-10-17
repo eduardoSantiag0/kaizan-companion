@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos;
+package io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;

@@ -7,7 +7,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramCh
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoAssembler;
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos.RunPodResponse;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodResponse;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -44,7 +43,8 @@ public class AnalysisAggregator {
 
         System.out.println("CHEGOU: " + response);
 
-        AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.output().correlationId()).orElseThrow(() -> new RuntimeException("Job  not found"));
+        AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.output().correlationId())
+                .orElseThrow(() -> new RuntimeException("Job  not found"));
 
         TelegramChatEntity chatEntity = chatRepository.findById(response.output().chatId())
                 .orElseThrow(() -> new RuntimeException("Chat not found"));

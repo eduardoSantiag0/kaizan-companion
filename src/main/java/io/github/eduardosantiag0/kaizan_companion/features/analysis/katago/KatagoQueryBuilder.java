@@ -1,8 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago;
 
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.converters.ConverterSGFtoGTP;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.converters.ConverterSGFtoGTP;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoQuery;
-import io.github.eduardosantiag0.sgf.go.SgfCoordinate;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.model.SgfNode;
 import lombok.extern.slf4j.Slf4j;

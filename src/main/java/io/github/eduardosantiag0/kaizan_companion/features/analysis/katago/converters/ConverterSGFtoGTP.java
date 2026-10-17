@@ -1,8 +1,6 @@
-package io.github.eduardosantiag0.kaizan_companion.features.analysis.converters;
+package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.converters;
 
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.GTPTablePosition;
 import io.github.eduardosantiag0.sgf.model.SgfNode;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;

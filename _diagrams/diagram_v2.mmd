@@ -1,84 +1,105 @@
 ---
 config:
-  theme: forest
+  theme: default
 ---
 %%{init: {"theme": "base", "themeVariables": {"lineColor": "#a3a3a3", "primaryBorderColor": "#a3a3a3", "primaryColor": "#f7f5f1", "primaryTextColor": "#222222", "classText": "#222222", "edgeLabelBackground": "#ffffff"}}}%%
 classDiagram
     direction LR
 
-    class Telegram { <<external>> }
-    class OGScom { <<external>> }
-    class KataGoWorker { <<external>>
-        RunPod
-    }
-    class RabbitMQ { <<queue>> }
-
-    class ECommands { <<enumeration>>
-        STUDY
-        LAST_GAME
-        ADD_MY_OGS
+    namespace External {
+        class Telegram { <<external>> }
+        class OGScom { <<external>> }
+        class KGScom { <<external>> }
+        class KataGoWorker { <<external>>
+            RunPod
+        }
+        class RabbitMQ { <<queue>> }
     }
 
-    class JobStatus { <<enumeration>>
-        ANALYSIS_REQUESTED
-        IN_QUEUE
-        COMPLETED
-        FAILED
+    namespace TelegramLayer {
+        class ECommands { <<enumeration>>
+            STUDY
+            COLLECTION
+            LAST_GAME
+            ADD_MY_OGS
+        }
+        class TelegramBotService {
+            +consume(Update)
+        }
+        class NotificationService {
+            +sendMessageToChat()
+        }
     }
 
-    class TelegramBotService {
-        +consume(Update)
+    namespace Commands {
+        class CommandHandler { <<interface>>
+            +executeCommand(Update)
+        }
+        class StudyCommandHandler
+        class LastGameCommandHandler
+        class AddOgsCommandHandler
     }
 
-    class NotificationService {
-        +sendMessageToChat()
+    namespace Sources {
+        class SourceContextStrategy {
+            +setStrategy(url) ISourceStrategy
+        }
+        class ISourceStrategy { <<interface>>
+            +downloadGameById(id)
+        }
+        class OgsGameDownloader
     }
 
-    class CommandHandler { <<interface>>
-        +executeCommand(Update)
+    namespace Storage {
+        class IStorageProvider { <<interface>>
+            +store(file)
+        }
+        class LocalStorageProvider
+        class GoogleDrive
     }
-    class StudyCommandHandler
-    class LastGameCommandHandler
-    class AddOgsCommandHandler
 
-    class SourceContextStrategy {
-        +setStrategy(url) ISourceStrategy
+    namespace Domain {
+        class TelegramChatEntity {
+            chatId
+            ogsAccountName
+        }
+        class AnalysisJobEntity {
+            correlationId
+            jobStatus
+        }
+        class TelegramChatRepository { <<interface>> }
+        class AnalysisJobRepository { <<interface>> }
+        class JobStatus { <<enumeration>>
+            ANALYSIS_REQUESTED
+            IN_QUEUE
+            COMPLETED
+            FAILED
+            CANCELED
+            TIME_OUT
+        }
     }
-    class ISourceStrategy { <<interface>>
-        +downloadGameById(id)
-    }
-    class OgsGameDownloader
 
-    class IStorageProvider { <<interface>>
-        +store(file)
+    namespace AnalysisPipeline {
+        class AnalysisProducer {
+            +execute(chat, sgf)
+        }
+        class AnalysisListener {
+            +listen(evento)
+        }
+        class KatagoQueryBuilder {
+            +buildQuery(game)
+        }
+        class KatagoController
+        class AnalysisAggregator {
+            +handleResponse(resp)
+        }
+        class KatagoAssembler { <<threads>> }
+        class GamePhase { <<enumeration>>
+            opening
+            middlegame
+            endgame
+        }
     }
-    class LocalStorageProvider
-
-    class TelegramChatEntity {
-        chatId
-        ogsAccountName
-    }
-    class AnalysisJobEntity {
-        correlationId
-        jobStatus
-    }
-    class TelegramChatRepository { <<interface>> }
-    class AnalysisJobRepository { <<interface>> }
-
-    class AnalysisProducer {
-        +execute(chat, sgf)
-    }
-    class AnalysisListener {
-        +listen(evento)
-    }
-    class KatagoQueryBuilder {
-        +buildQuery(game)
-    }
-    class KatagoController
-    class AnalysisAggregator {
-        +handleResponse(resp)
-    }
-    class KatagoAssembler
 
     Telegram --> TelegramBotService : update
     TelegramBotService --> CommandHandler : despacha
@@ -90,11 +111,14 @@ classDiagram
     StudyCommandHandler --> SourceContextStrategy
     LastGameCommandHandler --> SourceContextStrategy
     SourceContextStrategy --> ISourceStrategy : seleciona
+    ISourceStrategy <|.. KgsGameDownloader
     ISourceStrategy <|.. OgsGameDownloader
     OgsGameDownloader --> OGScom : REST
+    KgsGameDownloader --> KGScom : REST
 
     StudyCommandHandler --> IStorageProvider
     IStorageProvider <|.. LocalStorageProvider
+    IStorageProvider <|.. GoogleDrive
 
     StudyCommandHandler --> TelegramChatRepository
     AddOgsCommandHandler --> TelegramChatRepository
@@ -109,22 +133,36 @@ classDiagram
     AnalysisProducer --> AnalysisJobRepository : salva job
     RabbitMQ --> AnalysisListener : consome
     AnalysisListener --> KataGoWorker : consulta
+    AnalysisListener --> AnalysisJobRepository : atualiza status
+    AnalysisListener --> NotificationService
     KataGoWorker --> KatagoController : callback
     KatagoController --> AnalysisAggregator
-    AnalysisAggregator --> KatagoAssembler
+    AnalysisAggregator --> "3" KatagoAssembler : executa em paralelo
+    KatagoAssembler --> AnalysisAggregator : retornada uma parte da analise
     AnalysisAggregator --> AnalysisJobRepository
+    AnalysisAggregator --> TelegramChatRepository
+    AnalysisAggregator --> IStorageProvider : armazena
     AnalysisAggregator --> NotificationService
-    AnalysisListener --> NotificationService
+    AnalysisAggregator ..> GamePhase
     NotificationService --> Telegram : mensagem
 
-    classDef in terfaceStyle fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
-    classDef externalStyle fill:#f3f4f6,stroke:#9ca3af,color:#374151
-    classDef queueStyle fill:#fde68a,stroke:#b45309,color:#78350f
-    classDef enumStyle fill:#dcfce7,stroke:#16a34a,color:#14532d
-    classDef entityStyle fill:#fae8ff,stroke:#a21caf,color:#581c87
+    style CommandHandler fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    style ISourceStrategy fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    style IStorageProvider fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    style TelegramChatRepository fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    style AnalysisJobRepository fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
 
-    cssClass "CommandHandler, ISourceStrategy, IStorageProvider, TelegramChatRepository, AnalysisJobRepository" interfaceStyle
-    cssClass "Telegram, OGScom, KataGoWorker" externalStyle
-    cssClass "RabbitMQ" queueStyle
-    cssClass "ECommands, JobStatus" enumStyle
-    cssClass "TelegramChatEntity, AnalysisJobEntity" entityStyle
+    style Telegram fill:#f3f4f6,stroke:#9ca3af,color:#374151
+    style OGScom fill:#f3f4f6,stroke:#9ca3af,color:#374151
+    style KGScom fill:#f3f4f6,stroke:#9ca3af,color:#374151
+    style KataGoWorker fill:#f3f4f6,stroke:#9ca3af,color:#374151
+
+    style RabbitMQ fill:#fde68a,stroke:#b45309,color:#78350f
+
+    style ECommands fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style JobStatus fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style GamePhase fill:#dcfce7,stroke:#16a34a,color:#14532d
+
+    style TelegramChatEntity fill:#fae8ff,stroke:#a21caf,color:#581c87
+    style AnalysisJobEntity fill:#fae8ff,stroke:#a21caf,color:#581c87
+    style KatagoAssembler fill:#ffedd5,stroke:#ea580c,color:#9a3412,stroke-width:2px

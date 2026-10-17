@@ -1,7 +1,6 @@
-package io.github.eduardosantiag0.kaizan_companion.features.analysis.converters;
+package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.converters;
 
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.GTPTablePosition;
-import io.github.eduardosantiag0.kaizan_companion.features.analysis.runpod.dtos.CriticalPoint;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.CriticalPoint;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.model.SgfNode;
 import org.springframework.stereotype.Component;
