@@ -8,9 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -40,26 +41,47 @@ public class OgsGameDownloader implements ISourceStrategy {
     }
 
     @Override
+    @Retryable(
+            retryFor = {
+                    ResourceAccessException.class,
+                    HttpServerErrorException.class,
+                    HttpClientErrorException.TooManyRequests.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(
+                    delay = 1000,
+                    multiplier = 2.0,
+                    maxDelay = 10000
+            )
+    )
     public ByteArrayResource downloadGameById(String id) {
         String endpoint = BASE_URL + "games/" + id + "/sgf/";
         System.out.println(endpoint);
 
-        try {
-            byte[] gameJson = rest.getForObject(endpoint, byte[].class);
+        byte[] gameJson = rest.getForObject(endpoint, byte[].class);
 
-//            log.debug("Obtidos da url {}", new String(gameJson, StandardCharsets.UTF_8));
-             return new ByteArrayResource(gameJson);
-        } catch (RestClientException e) {
-
-            System.out.println(endpoint);
-            throw new RuntimeException(
-                    "Error fetching game " + id,
-                    e
+        if (gameJson == null || gameJson.length == 0) {
+            throw new IllegalStateException(
+                    "OGS retornou SGF vazio: " + id
             );
         }
+         return new ByteArrayResource(gameJson);
     }
 
     @Override
+    @Retryable(
+            retryFor = {
+                    ResourceAccessException.class,
+                    HttpServerErrorException.class,
+                    HttpClientErrorException.TooManyRequests.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(
+                    delay = 1000,
+                    multiplier = 2.0,
+                    maxDelay = 10000
+            )
+    )
     public ByteArrayResource downloadLastGame(Long playerId) {
 
         String endpoint =
@@ -71,31 +93,24 @@ public class OgsGameDownloader implements ISourceStrategy {
                         "&page=1" +
                         "&page_size=1";
 
-        try {
-            PaginatedGameList response =
-                    rest.getForObject(endpoint, PaginatedGameList.class);
+        PaginatedGameList response =
+                rest.getForObject(endpoint, PaginatedGameList.class);
 
-            String url = null;
-            if (response != null) {
-                url = response
-                        .results()
-                        .get(0)
-                        .related().detail();
+        String url = null;
+        if (response != null) {
+            url = response
+                    .results()
+                    .get(0)
+                    .related().detail();
 
-            } else {
-                log.error("Resposta nula: {}", response);
-            }
-
-            String gameId = url.substring(url.lastIndexOf('/') + 1);
-
-            return downloadGameById(gameId);
-
-        } catch (RestClientException e) {
-            throw new RuntimeException(
-                    "Error fetching last game for player " + playerId + "\nMessage: " +
-                    e.getMessage()
-            );
+        } else {
+            log.error("Resposta nula: {}", response);
         }
+
+        String gameId = url.substring(url.lastIndexOf('/') + 1);
+
+        return downloadGameById(gameId);
+
     }
 
 }

@@ -121,29 +121,29 @@ public class AMQPConfig {
                 .with(ROUTING_KEY + ".dlq");
     }
 
-    @Bean
-    public StatelessRetryOperationsInterceptor retryInterceptor() {
-        return RetryInterceptorBuilder.stateless()
-                .maxRetries(3)
-                .backOffOptions(1000, 2.0, 10000)
-                .recoverer(new RejectAndDontRequeueRecoverer())
-                .build();
-    }
-
-    @Bean
-    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
-            ConnectionFactory connectionFactory,
-            SimpleRabbitListenerContainerFactoryConfigurer configurer,
-            RetryOperationsInterceptor retryInterceptor
-    ) {
-        var factory = new SimpleRabbitListenerContainerFactory();
-
-        configurer.configure(factory, connectionFactory);
-
-        factory.setAcknowledgeMode(AcknowledgeMode.AUTO);
-        factory.setAdviceChain(retryInterceptor);
-
-        return factory;
-    }
+//    @Bean
+//    public StatelessRetryOperationsInterceptor retryInterceptor() {
+//        return RetryInterceptorBuilder.stateless()
+//                .maxRetries(3)
+//                .backOffOptions(1000, 2.0, 10000)
+//                .recoverer(new RejectAndDontRequeueRecoverer())
+//                .build();
+//    }
+//
+//    @Bean
+//    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+//            ConnectionFactory connectionFactory,
+//            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+//            RetryOperationsInterceptor retryInterceptor
+//    ) {
+//        var factory = new SimpleRabbitListenerContainerFactory();
+//
+//        configurer.configure(factory, connectionFactory);
+//
+//        factory.setAcknowledgeMode(AcknowledgeMode.AUTO);
+//        factory.setAdviceChain(retryInterceptor);
+//
+//        return factory;
+//    }
 
 }
