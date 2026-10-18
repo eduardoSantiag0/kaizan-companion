@@ -1,5 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
+import com.rabbitmq.client.Channel;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisAggregator;
@@ -11,71 +12,97 @@ import io.github.eduardosantiag0.kaizan_companion.features.telegram.Notification
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.Map;
-
 @Component
 @Slf4j
 public class AnalysisListener {
 
-    private final String POST_URL;
+    private final String postUrl;
     private final RestTemplate rest = new RestTemplate();
-    private final AnalysisAggregator aggregator;
     private final AnalysisJobRepository jobRepository;
     private final NotificationService notificationService;
 
     public AnalysisListener(
-            @Value("${katago.post.url.sync}")
-            String handlerEndpoint,
-            AnalysisAggregator aggregator, AnalysisJobRepository jobRepository, NotificationService notificationService) {
-        POST_URL = handlerEndpoint;
-        this.aggregator = aggregator;
+            @Value("${katago.post.url.sync}") String postUrl,
+            AnalysisJobRepository jobRepository,
+            NotificationService notificationService
+    ) {
+        this.postUrl = postUrl;
         this.jobRepository = jobRepository;
         this.notificationService = notificationService;
     }
 
-    @RabbitListener(queues = "${rabbitmq.exchange.analysis.queue}")
+    @RabbitListener(
+            queues = "${rabbitmq.exchange.analysis.queue}"
+    )
     public void listen(@Payload AnalysisCreatedEvent event) {
 
-        Map<String, AnalysisCreatedEvent> request = Map.of(
-                "input", event
-        );
-        log.debug("Enviado: {}",request);
+        var dto = event.analysisDTO();
+        var correlationId = dto.correlationId();
 
-        KatagoErrorMessage response = rest.postForObject(
-                POST_URL,
-                request,
-                KatagoErrorMessage .class
-        );
+        AnalysisJobEntity job = jobRepository
+                .findByCorrelationId(correlationId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Job nao encontrado: " + correlationId
+                ));
 
-        AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(event.analysisDTO().correlationId()).orElseThrow(() -> new RuntimeException("Job nao encontrado"));
-
-
-        if (response != null && response.status().equals("FAILED")) {
-            jobEntity.setJobStatus(JobStatus.FAILED);
-            log.error("Resposta KataGo: {}", response);
-            notificationService.sendMessageToChat(new ReplyWithText(
-                    event.analysisDTO().chatId(),
-                    MessageFormatter.requestFailed()));
+        // Proteção básica contra reprocessamento
+        if (job.getJobStatus() == JobStatus.IN_QUEUE) {
+            log.info("Job {} ja está na fila", correlationId);
             return;
         }
 
+        Map<String, AnalysisCreatedEvent> request =
+                Map.of("input", event);
 
-        jobEntity.setJobStatus(JobStatus.IN_QUEUE);
+        log.debug("Enviando analise: {}", correlationId);
 
-        log.debug("Resposta KataGo: {}", response);
+        KatagoErrorMessage response = rest.postForObject(
+                postUrl,
+                request,
+                KatagoErrorMessage.class
+        );
 
-        notificationService.sendMessageToChat(new ReplyWithText(
-                event.analysisDTO().chatId(),
-                MessageFormatter.requestsIsInQueue(
-                        String.valueOf(event.analysisDTO().correlationId()
-                        )
-                )
-        ));
+        if (response == null ||
+                !"IN_QUEUE".equals(response.status())) {
 
+            throw new IllegalStateException(
+                    "KataGo nao aceitou a análise: " + response
+            );
+        }
+
+        job.setJobStatus(JobStatus.IN_QUEUE);
+        jobRepository.save(job);
+
+        log.info("Análise {} aceita pelo KataGo", correlationId);
+
+        try {
+            notificationService.sendMessageToChat(
+                    new ReplyWithText(
+                            dto.chatId(),
+                            MessageFormatter.requestsIsInQueue(
+                                    correlationId.toString()
+                            )
+                    )
+            );
+        } catch (Exception e) {
+            log.error(
+                    "Falha ao notificar chat sobre análise {}",
+                    correlationId,
+                    e
+            );
+        }
     }
 }
+
+// Processamento concluído = channel.basicAck(deliveryTag, false);
+// Falha temporária, tentar novamente = basicNack(tag, false, true)
+// Falha definitiva, não tentar novamente = basicNack(tag, false, false)
