@@ -2,6 +2,8 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.NullAnalysisQueryException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.messaging.RabbitMqUnavailableException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisDTO;
@@ -10,8 +12,10 @@ import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.Katag
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoQuery;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
+import io.github.eduardosantiag0.sgf.parser.SgfParseException;
 import io.github.eduardosantiag0.sgf.parser.SgfParser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -41,7 +45,7 @@ public class AnalysisProducer {
     }
 
 
-    public void execute(TelegramChatEntity chat, ByteArrayResource fileData) throws IOException {
+    public void execute(TelegramChatEntity chat, ByteArrayResource fileData) throws SgfParseException, IOException {
 
         byte[] gameBytes = fileData.getContentAsByteArray();
 
@@ -49,7 +53,13 @@ public class AnalysisProducer {
 
         AnalysisJobEntity jobEntity = new AnalysisJobEntity(chat, Instant.now(), correlationId);
 
-        SgfCollection collection = new SgfParser().parse(gameBytes);
+        SgfCollection collection;
+
+        try {
+            collection = new SgfParser().parse(gameBytes);
+        } catch (SgfParseException e) {
+            throw new SgfParseException(e.getMessage(), e.position(), e.line(), e.column());
+        }
 
         SgfGameTree game = collection.game(0);
 
@@ -59,15 +69,26 @@ public class AnalysisProducer {
         analysisJobRepository.save(jobEntity);
 
         KatagoQuery query = queryBuilder.buildQuery(game, correlationId);
-
-        AnalysisDTO dto = new AnalysisDTO(
+        if (query == null) {
+            throw  new NullAnalysisQueryException("Query is null");
+        }
+        AnalysisDTO dto = new AnalysisDTO (
                 jobEntity.getCorrelationId(),
                 jobEntity.getChat().getChatId()
-                );
+        );
 
         AnalysisCreatedEvent event = new AnalysisCreatedEvent(dto, query);
         jobEntity.setJobStatus(JobStatus.ANALYSIS_REQUESTED);
         rabbitTemplate.convertAndSend(QUEUE, event);
+
+        try {
+            rabbitTemplate.convertAndSend(QUEUE, event);
+        } catch (AmqpConnectException e) {
+            throw new RabbitMqUnavailableException(
+                    "RabbitMQ is unavailable",
+                    e
+            );
+        }
 
     }
 

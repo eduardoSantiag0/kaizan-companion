@@ -2,6 +2,9 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
 import com.rabbitmq.client.Channel;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.AnalysisJobNotFoundException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.KataGoAnalysisRejectedException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.ChatNotificationException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisAggregator;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
@@ -50,11 +53,10 @@ public class AnalysisListener {
 
         AnalysisJobEntity job = jobRepository
                 .findByCorrelationId(correlationId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Job nao encontrado: " + correlationId
+                .orElseThrow(() -> new AnalysisJobNotFoundException(
+                        "Job not found: " + correlationId
                 ));
 
-        // Proteção básica contra reprocessamento
         if (job.getJobStatus() == JobStatus.IN_QUEUE) {
             log.info("Job {} ja está na fila", correlationId);
             return;
@@ -73,10 +75,7 @@ public class AnalysisListener {
 
         if (response == null ||
                 !"IN_QUEUE".equals(response.status())) {
-
-            throw new IllegalStateException(
-                    "KataGo nao aceitou a análise: " + response
-            );
+            throw new KataGoAnalysisRejectedException(response);
         }
 
         job.setJobStatus(JobStatus.IN_QUEUE);
@@ -99,6 +98,8 @@ public class AnalysisListener {
                     correlationId,
                     e
             );
+            throw new ChatNotificationException( "Failed to notify chat: " + job.getChat().getChatId() + " chat about: " + correlationId);
+
         }
     }
 }

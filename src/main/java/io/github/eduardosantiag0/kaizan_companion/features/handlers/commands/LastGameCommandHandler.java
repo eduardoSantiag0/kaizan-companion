@@ -1,7 +1,9 @@
 package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.CustomExceptionHandler;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.GlobalExceptionHandler;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotConfiguredException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
@@ -29,7 +31,7 @@ public class LastGameCommandHandler implements CommandHandler {
     private final SourceContextStrategy sourceContextStrategy;
     private final IStorageProvider storageProvider;
 
-    private final Logger logger = LoggerFactory.getLogger(CustomExceptionHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, SourceContextStrategy sourceContextStrategy, IStorageProvider storageProvider) {
         this.telegramChatRepository = telegramChatRepository;
@@ -52,7 +54,7 @@ public class LastGameCommandHandler implements CommandHandler {
 
         if ((entity.getOgsAccountName() == null) || (entity.getOgsAccountId() == null)) {
             notificationService.sendErrorMessage(new ReplyWithText(chatId, "You must link your account first!\n"));
-            return;
+            throw new OgsAccountNotConfiguredException("Chat:" + chatId);
         }
 
 
@@ -63,7 +65,7 @@ public class LastGameCommandHandler implements CommandHandler {
 
         if (fileData == null) {
             logger.error("file data is null");
-            return;
+            throw new EmptySgfException("Chat:" + chatId);
         } else logger.debug(fileData.toString());
 
         storageProvider.store(fileData.getContentAsByteArray());

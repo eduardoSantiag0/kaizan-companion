@@ -1,5 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.features.sources.ogs;
 
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.LastGameNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.GameDetail;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.PaginatedGameList;
@@ -47,7 +49,6 @@ public class OgsGameDownloader implements ISourceStrategy {
                     HttpServerErrorException.class,
                     HttpClientErrorException.TooManyRequests.class
             },
-            maxAttempts = 3,
             backoff = @Backoff(
                     delay = 1000,
                     multiplier = 2.0,
@@ -61,8 +62,8 @@ public class OgsGameDownloader implements ISourceStrategy {
         byte[] gameJson = rest.getForObject(endpoint, byte[].class);
 
         if (gameJson == null || gameJson.length == 0) {
-            throw new IllegalStateException(
-                    "OGS retornou SGF vazio: " + id
+            throw new EmptySgfException(
+                    "SGF is empty: " + id
             );
         }
          return new ByteArrayResource(gameJson);
@@ -104,7 +105,8 @@ public class OgsGameDownloader implements ISourceStrategy {
                     .related().detail();
 
         } else {
-            log.error("Resposta nula: {}", response);
+            log.error("Resposta nula para: {}", endpoint);
+            throw new LastGameNotFoundException("Query: " + endpoint);
         }
 
         String gameId = url.substring(url.lastIndexOf('/') + 1);

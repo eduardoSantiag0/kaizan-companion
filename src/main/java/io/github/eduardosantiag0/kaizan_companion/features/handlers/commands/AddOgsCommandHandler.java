@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
@@ -51,7 +52,7 @@ public class AddOgsCommandHandler implements CommandHandler {
             var dto = rest.getForObject(endpoint, OgsSearchByUsernameDTO.class);
 
             if (dto.count() == 0) {
-                throw new RuntimeException("Username not found");
+                throw new OgsAccountNotFoundException("Username not found");
             }
 
             if (dto.results().size() > 1) {

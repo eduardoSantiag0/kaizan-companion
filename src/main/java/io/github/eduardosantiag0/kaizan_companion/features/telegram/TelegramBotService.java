@@ -3,9 +3,11 @@ package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 
 //import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisService;
 
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.commands.UnknownCommandException;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.AddOgsCommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.LastGameCommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.StudyCommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,7 @@ public class TelegramBotService
     private final StudyCommandHandler studyCommandHandler;
     private final AddOgsCommandHandler addOgsCommandHandler;
     private final LastGameCommandHandler lastGameCommandHandler;
+    private final NotificationService notificationService;
 
 
     private static final List<BotCommand> commandList = List.of(
@@ -50,12 +53,13 @@ public class TelegramBotService
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
             StudyCommandHandler studyCommandHandler,
-            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler) {
+            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService) {
         this.botName = botName;
         this.botToken = botToken;
         this.studyCommandHandler = studyCommandHandler;
         this.addOgsCommandHandler = addOgsCommandHandler;
         this.lastGameCommandHandler = lastGameCommandHandler;
+        this.notificationService = notificationService;
     }
 
     public String getBotUsername() {
@@ -96,7 +100,10 @@ public class TelegramBotService
             case "/last_game" ->
                 lastGameCommandHandler.executeCommand(update);
 
-
+            default -> {
+                notificationService.sendErrorMessage(new ReplyWithText(update.getChannelPost().getChatId(), "Your commando does not exist"));
+                throw new UnknownCommandException("Your commando does not exist");
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import java.net.URL;
 public class GeneralValidator {
 
     public static boolean isValidURL(String urlString) {
+        //TODO URL inválida
         try {
             URL url = new URL(urlString);
             url.toURI();

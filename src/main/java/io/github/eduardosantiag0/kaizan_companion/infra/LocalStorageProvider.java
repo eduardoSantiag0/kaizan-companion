@@ -1,6 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.infra;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.StorageException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.StorageException;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.model.SgfNode;
@@ -15,13 +15,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.UUID;
 
 @Service
