@@ -1,8 +1,10 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.GameAnalysisEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.GameAnalysisRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
@@ -29,14 +31,16 @@ public class AnalysisAggregator {
     private final AnalysisJobRepository jobRepository;
     private final KatagoAssembler assembler; //TODO mudar o nome
     private final IStorageProvider storageProvider;
+    private final GameAnalysisRepository gameAnalysisRepository;
 
 
-    public AnalysisAggregator(NotificationService notificationService, TelegramChatRepository chatRepository, AnalysisJobRepository jobRepository, KatagoAssembler assembler, IStorageProvider storageProvider) {
+    public AnalysisAggregator(NotificationService notificationService, TelegramChatRepository chatRepository, AnalysisJobRepository jobRepository, KatagoAssembler assembler, IStorageProvider storageProvider, GameAnalysisRepository gameAnalysisRepository) {
         this.notificationService = notificationService;
         this.chatRepository = chatRepository;
         this.jobRepository = jobRepository;
         this.assembler = assembler;
         this.storageProvider = storageProvider;
+        this.gameAnalysisRepository = gameAnalysisRepository;
     }
 
     public void handleResponse(RunPodResponse response) throws IOException {
@@ -49,7 +53,11 @@ public class AnalysisAggregator {
         TelegramChatEntity chatEntity = chatRepository.findById(response.output().chatId())
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
 
+        GameAnalysisEntity gameAnalysisEntity = new GameAnalysisEntity(jobEntity, chatEntity);
+
         List<ByteArrayResource> gamePhases = Collections.synchronizedList(new ArrayList<>());
+
+        String[] sgfs = new String[3];
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             response.output().output().criticalPoints().forEach(point -> {
@@ -59,9 +67,9 @@ public class AnalysisAggregator {
 
                     // Salvar o sgf na entidade
                     switch (point.phase()) {
-                        case GamePhase.opening -> jobEntity.setOpeningAnalysed(fileData.toString());
-                        case GamePhase.middlegame -> jobEntity.setMiddlegameAnalysed(fileData.toString());
-                        case GamePhase.endgame -> jobEntity.setEndgameAnalysed(fileData.toString());
+                        case GamePhase.opening -> sgfs[0] = fileData.toString();
+                        case GamePhase.middlegame -> sgfs[1] = fileData.toString();
+                        case GamePhase.endgame -> sgfs[2] = fileData.toString();
                     }
 
                     // Salvar e notificar com o ByteArrayResource
@@ -80,10 +88,16 @@ public class AnalysisAggregator {
 
                 });
             });
-
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Not possible to save your game");
         }
 
-        jobEntity.setFullAnalysedGame(String.valueOf(assembler.assebleAllPhases(gamePhases)));
+        gameAnalysisEntity.setOpeningAnalysed(sgfs[0]);
+        gameAnalysisEntity.setMiddlegameAnalysed(sgfs[1]);
+        gameAnalysisEntity.setEndgameAnalysed(sgfs[2]);
+        gameAnalysisEntity.setFullAnalysedGame(String.valueOf(assembler.assebleAllPhases(gamePhases)));
+
+        gameAnalysisRepository.save(gameAnalysisEntity);
 
         jobEntity.setJobStatus(JobStatus.COMPLETED);
 

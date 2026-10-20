@@ -27,31 +27,12 @@ public class AnalysisJobEntity {
     @JoinColumn(name = "chat_id", nullable = false)
     private TelegramChatEntity chat;
 
+
     @Column(name = "original_game",
-        columnDefinition = "TEXT")
+            columnDefinition = "TEXT")
     @Setter
     @Getter
     private String originalGame;
-
-    @Column(name = "opening_analysed",
-            columnDefinition = "TEXT")
-    @Setter
-    private String openingAnalysed;
-
-    @Column(name = "midgame_analysed",
-            columnDefinition = "TEXT")
-    @Setter
-    private String middlegameAnalysed;
-
-    @Column(name = "endgame_analysed",
-            columnDefinition = "TEXT")
-    @Setter
-    private String endgameAnalysed;
-
-    @Column(name = "full_analysed",
-            columnDefinition = "TEXT")
-    @Setter
-    private String fullAnalysedGame;
 
     @Column(name = "link_source")
     @Setter
