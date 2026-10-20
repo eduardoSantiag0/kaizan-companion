@@ -57,10 +57,10 @@ public class AnalysisListener {
                         "Job not found: " + correlationId
                 ));
 
-        if (job.getJobStatus() == JobStatus.IN_QUEUE) {
-            log.info("Job {} ja está na fila", correlationId);
-            return;
-        }
+//        if (job.getJobStatus() == JobStatus.IN_QUEUE) {
+//            log.info("Job {} ja está na fila", correlationId);
+//            return;
+//        }
 
         Map<String, AnalysisCreatedEvent> request =
                 Map.of("input", event);
@@ -73,8 +73,10 @@ public class AnalysisListener {
                 KatagoErrorMessage.class
         );
 
-        if (response == null ||
-                !"IN_QUEUE".equals(response.status())) {
+        if (response.error() != null
+//                || !"IN_QUEUE".equals(response.status())
+        ) {
+            job.setJobStatus(JobStatus.FAILED);
             throw new KataGoAnalysisRejectedException(response);
         }
 

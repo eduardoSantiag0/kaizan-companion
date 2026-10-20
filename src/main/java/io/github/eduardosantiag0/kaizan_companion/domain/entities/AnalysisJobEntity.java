@@ -3,6 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.domain.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "analysis_job_db")
 @Getter
+@Slf4j
 @EntityListeners(AuditingEntityListener.class)
 public class AnalysisJobEntity {
     @Id
@@ -55,9 +57,20 @@ public class AnalysisJobEntity {
     private Instant finishedAt;
 
     @Column(name = "job_status")
-    @Setter
     @Enumerated(EnumType.STRING)
     private JobStatus jobStatus;
+
+    public void setJobStatus(JobStatus newStatus) {
+//        if (newStatus == this.jobStatus) throw new RuntimeException("Status already set");
+
+        var oldStatus = this.jobStatus;
+        this.jobStatus = newStatus;
+
+        log.debug("{} --> {}", oldStatus,this.jobStatus);
+
+    }
+
+
 
     public AnalysisJobEntity(TelegramChatEntity chat, Instant startedAt,
                              UUID correlationId) {

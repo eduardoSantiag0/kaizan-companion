@@ -3,6 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.GameAnalysisEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.ChatNotificationException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.GameAnalysisRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
@@ -59,10 +60,11 @@ public class AnalysisAggregator {
 
         String[] sgfs = new String[3];
 
+        System.out.println(response.output().output().criticalPoints());
+
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             response.output().output().criticalPoints().forEach(point -> {
                 executor.submit(() -> {
-
                     ByteArrayResource fileData = assembler.attachAnalysisToGame(point, jobEntity.getOriginalGame());
 
                     // Salvar o sgf na entidade
@@ -81,8 +83,10 @@ public class AnalysisAggregator {
                                 )
                         );
                         gamePhases.add(fileData);
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
+                    } catch (ChatNotificationException e) {
+                        throw new ChatNotificationException(e.getMessage());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
 
 

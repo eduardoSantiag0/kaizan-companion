@@ -38,7 +38,7 @@ public class ConverterGTPtoSGF {
         return "" + colChar + rowChar;
     }
 
-    private static SgfNode moveGTPtoSGF(String player, String move, int boardYSize) {
+    private static SgfNode movesGTPtoSGF(String player, String move, int boardYSize) {
         String sgfCoord = convertSingleGtpToSgf(move, boardYSize);
 
         SgfNode node = new SgfNode();
@@ -54,7 +54,7 @@ public class ConverterGTPtoSGF {
 
     //TODO deve aceitar todos os formatos de tabuleiro
     public static SgfGameTree getSgfFormat(CriticalPoint s) {
-        SgfNode root = moveGTPtoSGF(s.player(), s.move(), DEFAULT_BOARD_SIZE);
+        SgfNode root = movesGTPtoSGF(s.player(), s.move(), DEFAULT_BOARD_SIZE);
 
         return new SgfGameTree(root);
     }

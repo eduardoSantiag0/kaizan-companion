@@ -1,0 +1,43 @@
+<configuration>
+
+    <springProfile name="dev">
+
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern> [%d{HH:mm:ss}] %highlight(%-5level) %msg%n </pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.eduardoSantiag0.kaizan-companion"
+                level="DEBUG">
+            <appender-ref ref="STDOUT"/>
+        </logger>
+
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern> [%d{yyyy-MM-dd HH:mm:ss}]  %-5level - %msg%n </pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.eduardoSantiag0.kaizan-companion"
+                level="DEBUG">
+            <appender-ref ref="STDOUT"/>
+        </logger>
+
+        <root level="WARN">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+<!--TODO Fazer log erros e gerar arquivos  -->
+
+
+
+</configuration>

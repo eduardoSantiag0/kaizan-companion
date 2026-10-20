@@ -22,6 +22,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -64,14 +65,15 @@ public class AnalysisProducer {
         SgfGameTree game = collection.game(0);
 
         jobEntity.setLinkToSource(String.valueOf(game.root().value("PC")));
-        jobEntity.setOriginalGame(String.valueOf(game));
+        jobEntity.setOriginalGame(new String(gameBytes, StandardCharsets.UTF_8));
 
-        analysisJobRepository.save(jobEntity);
 
         KatagoQuery query = queryBuilder.buildQuery(game, correlationId);
+
         if (query == null) {
             throw  new NullAnalysisQueryException("Query is null");
         }
+
         AnalysisDTO dto = new AnalysisDTO (
                 jobEntity.getCorrelationId(),
                 jobEntity.getChat().getChatId()
@@ -79,7 +81,7 @@ public class AnalysisProducer {
 
         AnalysisCreatedEvent event = new AnalysisCreatedEvent(dto, query);
         jobEntity.setJobStatus(JobStatus.ANALYSIS_REQUESTED);
-        rabbitTemplate.convertAndSend(QUEUE, event);
+        analysisJobRepository.save(jobEntity);
 
         try {
             rabbitTemplate.convertAndSend(QUEUE, event);

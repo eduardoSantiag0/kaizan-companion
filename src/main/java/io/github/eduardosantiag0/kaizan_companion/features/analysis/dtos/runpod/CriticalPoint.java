@@ -10,7 +10,7 @@ public record CriticalPoint(
         GamePhase phase,
         int turn,
         String player,
-        String move,
+        String move, // wrong move
         double winrateDrop,
         KatagoResponse before,
         KatagoResponse after
