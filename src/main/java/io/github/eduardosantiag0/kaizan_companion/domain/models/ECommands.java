@@ -4,7 +4,8 @@ public enum ECommands {
     STUDY ("/study"),
     COLLECTION("/collection"),
     LAST_GAME("/last_game"),
-    ADD_MY_OGS("add-my-ogs");
+    ADD_MY_OGS("/add-my-ogs"),
+    RESIGN("/resign");
 
     private final String name;
 
