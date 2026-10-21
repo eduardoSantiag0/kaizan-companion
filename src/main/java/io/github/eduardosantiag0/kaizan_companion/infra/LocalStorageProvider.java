@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.infra;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.StorageException;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.model.SgfNode;
@@ -52,7 +53,7 @@ public class LocalStorageProvider implements IStorageProvider{
         }
     }
 
-    String resolveFileName (byte[] file) {
+    String resolveFileName (byte[] file, GamePhase phase) {
 //        logger.debug(Arrays.toString(file));
         SgfCollection collection = new SgfParser().parse(file);
         SgfGameTree game = collection.game(0);
@@ -61,14 +62,15 @@ public class LocalStorageProvider implements IStorageProvider{
 
         String black = root.value("PB").orElse("desconhecido");
         String white = root.value("PW").orElse("desconhecido");
-        return black + white + UUID.randomUUID() + ".sgf";
+        return black + white + "_" + phase.name().toUpperCase() + "_" + UUID.randomUUID() + ".sgf";
     }
 
     @Override
     public String store(byte[] file) {
 
         // Extract sgf
-        String fileName = resolveFileName(file);
+        //TODO tirar esse phase
+        String fileName = resolveFileName(file, GamePhase.opening);
         Path filePath = PATH_FOLDER.resolve(fileName);
 
         try {
@@ -82,6 +84,25 @@ public class LocalStorageProvider implements IStorageProvider{
             );
         }
     }
+
+    @Override
+    public String store(byte[] file, GamePhase phase) {
+        // Extract sgf
+        String fileName = resolveFileName(file, phase);
+        Path filePath = PATH_FOLDER.resolve(fileName);
+
+        try {
+            Files.write(filePath, file);
+            logger.debug("\n\nFile name: {} in Path: {}\n\n", fileName, filePath );
+            return fileName;
+
+        } catch (IOException e) {
+            throw new StorageException(
+                    "Could not store file: " + fileName
+            );
+        }
+    }
+
     @Override
     public Boolean exists(String key) {
         Path physicalFilePath = Path.of(key).normalize();

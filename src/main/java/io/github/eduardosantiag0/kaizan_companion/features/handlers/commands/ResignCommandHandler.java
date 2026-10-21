@@ -8,13 +8,17 @@ import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandl
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 
+@Service
 public class ResignCommandHandler implements CommandHandler {
+
+    record CancelRequest(String correlationId){}
 
     private final RestTemplate rest = new RestTemplate();
     private final NotificationService notificationService;
@@ -41,7 +45,7 @@ public class ResignCommandHandler implements CommandHandler {
 
         RunPodCancelledResponse response = rest.postForObject(
                 RUNPOD_URL+endpoint,
-                jobId,
+                new CancelRequest(jobId),
                 RunPodCancelledResponse.class
         );
 

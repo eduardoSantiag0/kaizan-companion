@@ -3,7 +3,6 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.GameAnalysisEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.ChatNotificationException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.GameAnalysisRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
@@ -15,17 +14,19 @@ import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageForma
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
-import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 @Service
@@ -35,7 +36,7 @@ public class AnalysisAggregator {
     private final NotificationService notificationService;
     private final TelegramChatRepository chatRepository;
     private final AnalysisJobRepository jobRepository;
-    private final KatagoAssembler assembler; //TODO mudar o nome
+    private final KatagoAssembler assembler;
     private final IStorageProvider storageProvider;
     private final GameAnalysisRepository gameAnalysisRepository;
 
@@ -51,8 +52,6 @@ public class AnalysisAggregator {
 
     public void handleResponse(RunPodResponse response) throws IOException {
 
-        System.out.println("CHEGOU: " + response);
-
         AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.output().correlationId())
                 .orElseThrow(() -> new RuntimeException("Job  not found"));
 
@@ -66,54 +65,50 @@ public class AnalysisAggregator {
 
         GameAnalysisEntity gameAnalysisEntity = new GameAnalysisEntity(jobEntity, chatEntity);
 
-        List<ByteArrayResource> gamePhases = Collections.synchronizedList(new ArrayList<>());
         String[] sgfs = new String[3];
+        List<Future<?>> futures = new ArrayList<>();
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            response.output().output().criticalPoints().forEach(point -> {
-                executor.submit(() -> {
-//                    SgfNode{W[rb]}
-                    String node = assembler.attachAnalysisToGame(point, jobEntity.getOriginalGame());
-                    byte[] data = SerializationUtils.serialize(node);
+            response.output().output().criticalPoints()
+                    .forEach(point -> futures.add(
+                            executor.submit(() -> {
+                String node = assembler.attachAnalysisToGame(point, jobEntity.getOriginalGame());
+                byte[] data = node.getBytes(StandardCharsets.UTF_8);
 
-                    switch (point.phase()) {
-                        case GamePhase.opening -> {
-                            sgfs[0] = node;
-                            gameAnalysisEntity.setOpeningAnalysed(node);
-                        }
-                        case GamePhase.middlegame -> {
-                            sgfs[1] = node;
-                            gameAnalysisEntity.setMiddlegameAnalysed(node);
-                        }
-                        case GamePhase.endgame -> {
-                            sgfs[2] = node;
-                            gameAnalysisEntity.setEndgameAnalysed(node);
-                        }
+                switch (point.phase()) {
+                    case GamePhase.opening -> {
+                        sgfs[0] = node;
+                        gameAnalysisEntity.setOpeningAnalysed(node);
                     }
-
-                    System.out.println(sgfs.toString());
-
-                    // Salvar e notificar com o ByteArrayResource
-                    try {
-                        storageProvider.store(data);
-                        notificationService.sendMessageToChat(
-                                new ReplyWithFile(response.output().chatId(),data,
-                                        MessageFormatter.requestCompleted(data)
-                                )
-                        );
-//                        gamePhases.add(fileData);
-                    } catch (ChatNotificationException e) {
-                        throw new ChatNotificationException(e.getMessage());
+                    case GamePhase.middlegame -> {
+                        sgfs[1] = node;
+                        gameAnalysisEntity.setMiddlegameAnalysed(node);
                     }
-//                    catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
+                    case GamePhase.endgame -> {
+                        sgfs[2] = node;
+                        gameAnalysisEntity.setEndgameAnalysed(node);
+                    }
+                }
 
+                // Salvar e notificar com o ByteArrayResource
+                storageProvider.store(data, point.phase());
+                notificationService.sendMessageToChat(
+                        new ReplyWithFile(response.output().chatId(), data,
+                                MessageFormatter.requestCompleted(data)
+                        )
+                );
+            })));
+        }
 
-                });
-            });
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Not possible to save your game");
+        for (Future<?> future : futures) {
+            try {
+                future.get(); // Relança o erro caso houve algum
+            } catch (ExecutionException e) {
+                throw new RuntimeException("Not possible to save your game", e.getCause());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Not possible to save your game", e);
+            }
         }
 
 //        gameAnalysisEntity.setFullAnalysedGame(String.valueOf(assembler.assebleAllPhases(gamePhases)));
