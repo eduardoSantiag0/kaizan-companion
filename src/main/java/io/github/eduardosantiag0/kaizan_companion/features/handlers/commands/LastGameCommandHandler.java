@@ -68,8 +68,6 @@ public class LastGameCommandHandler implements CommandHandler {
             throw new EmptySgfException("Chat:" + chatId);
         } else logger.debug(fileData.toString());
 
-        storageProvider.store(fileData.getContentAsByteArray());
-
 
         entity.setWaitingForAnalysis(true);
         telegramChatRepository.save(entity);

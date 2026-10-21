@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -44,64 +45,95 @@ public class AnalysisListener {
     }
 
     @RabbitListener(
-            queues = "${rabbitmq.exchange.analysis.queue}"
+            queues = "${rabbitmq.exchange.analysis.queue}",
+            ackMode = "MANUAL"
     )
-    public void listen(@Payload AnalysisCreatedEvent event) {
+    public void listen(
+            @Payload AnalysisCreatedEvent event,
+            Channel channel,
+            @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag
+    ) throws IOException {
 
         var dto = event.analysisDTO();
         var correlationId = dto.correlationId();
 
-        AnalysisJobEntity job = jobRepository
-                .findByCorrelationId(correlationId)
-                .orElseThrow(() -> new AnalysisJobNotFoundException(
-                        "Job not found: " + correlationId
-                ));
-
-//        if (job.getJobStatus() == JobStatus.IN_QUEUE) {
-//            log.info("Job {} ja está na fila", correlationId);
-//            return;
-//        }
-
-        Map<String, AnalysisCreatedEvent> request =
-                Map.of("input", event);
-
-        log.debug("Enviando analise: {}", correlationId);
-
-        KatagoErrorMessage response = rest.postForObject(
-                postUrl,
-                request,
-                KatagoErrorMessage.class
-        );
-
-        if (response.error() != null
-//                || !"IN_QUEUE".equals(response.status())
-        ) {
-            job.setJobStatus(JobStatus.FAILED);
-            throw new KataGoAnalysisRejectedException(response);
-        }
-
-        job.setJobStatus(JobStatus.IN_QUEUE);
-        jobRepository.save(job);
-
-        log.info("Análise {} aceita pelo KataGo", correlationId);
-
         try {
-            notificationService.sendMessageToChat(
-                    new ReplyWithText(
-                            dto.chatId(),
-                            MessageFormatter.requestsIsInQueue(
-                                    correlationId.toString()
-                            )
-                    )
-            );
-        } catch (Exception e) {
-            log.error(
-                    "Falha ao notificar chat sobre análise {}",
-                    correlationId,
-                    e
-            );
-            throw new ChatNotificationException( "Failed to notify chat: " + job.getChat().getChatId() + " chat about: " + correlationId);
+            AnalysisJobEntity job = jobRepository
+                    .findByCorrelationId(correlationId)
+                    .orElseThrow(() -> new AnalysisJobNotFoundException(
+                            "Job not found: " + correlationId
+                    ));
 
+            if (job.getJobStatus() == JobStatus.IN_QUEUE) {
+                log.info("Job already in queue {} ", correlationId);
+                channel.basicAck(deliveryTag, false);
+                return;
+            }
+
+            Map<String, AnalysisCreatedEvent> request =
+                    Map.of("input", event);
+
+            KatagoErrorMessage response = rest.postForObject(
+                    postUrl,
+                    request,
+                    KatagoErrorMessage.class
+            );
+
+            if (response == null) {
+                throw new IllegalStateException(
+                        "Empty KataGo response"
+                );
+            }
+
+            if (response.error() != null) {
+                job.setJobStatus(JobStatus.FAILED);
+                jobRepository.save(job);
+                log.error("KataGo rejected {}: {}", correlationId, response);
+                // Falha definitiva, não tentar novamente
+                channel.basicNack(deliveryTag, false, false);
+                return;
+            }
+
+            job.setJobStatus(JobStatus.IN_QUEUE);
+            jobRepository.save(job);
+
+            try {
+                notificationService.sendMessageToChat(
+                        new ReplyWithText(
+                                dto.chatId(),
+                                MessageFormatter.requestsIsInQueue(
+                                        correlationId.toString()
+                                )
+                        )
+                );
+            } catch (Exception e) {
+                log.error(
+                        "Failed to notify channel {}",
+                        correlationId, e
+                );
+            }
+
+            // Processamento concluído
+            channel.basicAck(deliveryTag, false);
+
+            log.info("Análise {} aceita pelo KataGo", correlationId);
+
+        } catch (AnalysisJobNotFoundException e) {
+            log.error("Job inexistente: {}", correlationId, e);
+
+            // Falha definitiva -> DLQ, se configurada
+            channel.basicNack(deliveryTag, false, false);
+
+        } catch (RestClientException e) {
+            log.error("Falha HTTP ao enviar análise {}", correlationId, e);
+
+            // Falha temporária, tentar novamente
+            channel.basicNack(deliveryTag, false, true);
+
+        } catch (RuntimeException e) {
+            log.error("Falha inesperada na análise {}", correlationId, e);
+
+            channel.basicNack(deliveryTag, false, true);
         }
     }
 }

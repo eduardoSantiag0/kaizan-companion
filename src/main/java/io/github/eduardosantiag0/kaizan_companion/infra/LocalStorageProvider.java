@@ -73,6 +73,7 @@ public class LocalStorageProvider implements IStorageProvider{
 
         try {
             Files.write(filePath, file);
+            logger.debug("\n\nFile name: {} in Path: {}\n\n", fileName, filePath );
             return fileName;
 
         } catch (IOException e) {

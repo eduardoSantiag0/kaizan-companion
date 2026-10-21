@@ -15,8 +15,11 @@ import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageForma
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +30,8 @@ import java.util.concurrent.Executors;
 
 @Service
 public class AnalysisAggregator {
+    private static final Logger log = LoggerFactory.getLogger(AnalysisAggregator.class);
+
     private final NotificationService notificationService;
     private final TelegramChatRepository chatRepository;
     private final AnalysisJobRepository jobRepository;
@@ -51,43 +56,58 @@ public class AnalysisAggregator {
         AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.output().correlationId())
                 .orElseThrow(() -> new RuntimeException("Job  not found"));
 
+        if (gameAnalysisRepository.existsByJobEntity(jobEntity)) {
+            log.warn("Callback duplicado ignorado para o job {}", jobEntity.getId());
+            return;
+        }
+
         TelegramChatEntity chatEntity = chatRepository.findById(response.output().chatId())
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
 
         GameAnalysisEntity gameAnalysisEntity = new GameAnalysisEntity(jobEntity, chatEntity);
 
         List<ByteArrayResource> gamePhases = Collections.synchronizedList(new ArrayList<>());
-
         String[] sgfs = new String[3];
-
-        System.out.println(response.output().output().criticalPoints());
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             response.output().output().criticalPoints().forEach(point -> {
                 executor.submit(() -> {
-                    ByteArrayResource fileData = assembler.attachAnalysisToGame(point, jobEntity.getOriginalGame());
+//                    SgfNode{W[rb]}
+                    String node = assembler.attachAnalysisToGame(point, jobEntity.getOriginalGame());
+                    byte[] data = SerializationUtils.serialize(node);
 
-                    // Salvar o sgf na entidade
                     switch (point.phase()) {
-                        case GamePhase.opening -> sgfs[0] = fileData.toString();
-                        case GamePhase.middlegame -> sgfs[1] = fileData.toString();
-                        case GamePhase.endgame -> sgfs[2] = fileData.toString();
+                        case GamePhase.opening -> {
+                            sgfs[0] = node;
+                            gameAnalysisEntity.setOpeningAnalysed(node);
+                        }
+                        case GamePhase.middlegame -> {
+                            sgfs[1] = node;
+                            gameAnalysisEntity.setMiddlegameAnalysed(node);
+                        }
+                        case GamePhase.endgame -> {
+                            sgfs[2] = node;
+                            gameAnalysisEntity.setEndgameAnalysed(node);
+                        }
                     }
+
+                    System.out.println(sgfs.toString());
 
                     // Salvar e notificar com o ByteArrayResource
                     try {
-                        storageProvider.store(fileData.getContentAsByteArray());
+                        storageProvider.store(data);
                         notificationService.sendMessageToChat(
-                                new ReplyWithFile(response.output().chatId(), fileData.getContentAsByteArray(),
-                                        MessageFormatter.requestCompleted(fileData.getContentAsByteArray())
+                                new ReplyWithFile(response.output().chatId(),data,
+                                        MessageFormatter.requestCompleted(data)
                                 )
                         );
-                        gamePhases.add(fileData);
+//                        gamePhases.add(fileData);
                     } catch (ChatNotificationException e) {
                         throw new ChatNotificationException(e.getMessage());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
                     }
+//                    catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
 
 
                 });
@@ -96,10 +116,7 @@ public class AnalysisAggregator {
             throw new RuntimeException("Not possible to save your game");
         }
 
-        gameAnalysisEntity.setOpeningAnalysed(sgfs[0]);
-        gameAnalysisEntity.setMiddlegameAnalysed(sgfs[1]);
-        gameAnalysisEntity.setEndgameAnalysed(sgfs[2]);
-        gameAnalysisEntity.setFullAnalysedGame(String.valueOf(assembler.assebleAllPhases(gamePhases)));
+//        gameAnalysisEntity.setFullAnalysedGame(String.valueOf(assembler.assebleAllPhases(gamePhases)));
 
         gameAnalysisRepository.save(gameAnalysisEntity);
 

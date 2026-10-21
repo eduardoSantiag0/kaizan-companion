@@ -88,8 +88,5 @@ public class StudyCommandHandler implements CommandHandler {
 
         analysisProducer.execute(entity, fileData);
 
-        //TODO remover quando fluxo for completo
-        storageProvider.store(fileData.getContentAsByteArray());
-
     }
 }
