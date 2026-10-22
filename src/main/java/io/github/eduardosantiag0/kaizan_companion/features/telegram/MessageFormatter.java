@@ -1,15 +1,19 @@
 package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.MinimalPlayer;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.model.SgfNode;
 import io.github.eduardosantiag0.sgf.parser.SgfParser;
 
+import java.util.List;
+
 public class MessageFormatter {
 
-    public static String requestCompleted (String fileName) {
-        return "The analysis for your game was completed: " + fileName;
+    public static String requestCompleted(String fileName) {
+        return formatCompleted("📄 Game: " + fileName);
     }
 
     public static String requestCompleted(byte[] file) {
@@ -18,28 +22,128 @@ public class MessageFormatter {
         SgfGameTree game = collection.game(0);
         SgfNode root = game.root();
 
+        String black = root.value("PB").orElse("Unknown");
+        String white = root.value("PW").orElse("Unknown");
 
-        String black = root.value("PB").orElse("desconhecido");
-        String white = root.value("PW").orElse("desconhecido");
-        String players = black + " vs " + white;
+        String match = """
+            ⚔ THE MATCH
 
-        return "The analysis for your game was completed: " + players;
+            ● %s
+                 VS
+            ○ %s
+            """.formatted(black, white);
 
+        return formatCompleted(match);
     }
+
+    private static String formatCompleted(String details) {
+        return """
+            ╭─── ⛩ KAIZEN COMPANION ⛩ ───╮
+
+                   ● ─┬─ ○
+                   │  │  │
+                   ├─ ◉ ─┤
+                   │  │  │
+                   ○ ─┴─ ●
+
+              ◉ ANALYSIS COMPLETE!
+
+            ╰─────────────────────────────╯
+
+            %s
+
+            ● ━━━━━━━ ◉ ━━━━━━━ ○
+            """.formatted(details);
+    }
+
 
     public static String requestsIsInQueue(String correlationId) {
-        return "Your request is in queue :D\n" +
-                "ID = " + correlationId +
-                "\nTo see the progress, use /queue to see your requests\n";
+        return """
+            ⏳ ANALYSIS QUEUED
+
+            Your game is waiting to be analyzed.
+
+            ◉ Job ID: %s
+
+            📊 Track your progress with /queue
+
+            ● ─── ◌ ─── ○
+            """.formatted(correlationId);
     }
 
+
     public static String requestFailed() {
-        return "We were not able to process your request.\n";
+        return """
+            ┌─ ✕ REQUEST FAILED ✕  ─────────┐
+
+              We were not able to process your request.
+
+              ↻ Try again?
+
+            └───────────────────────┘
+            """;
 
     }
 
     public static String formatOgsAcccountLinked(MinimalPlayer dto) {
-        return "Account linked: " + dto.username() + "\nNow you can track your studies more easily!";
+        return """
+            ╭─── ⛩ KAIZEN ⛩ ───╮
+
+              ✓ ACCOUNT LINKED!
+
+              ◉ Player: %s
+              ◉ Platform: OGS
+
+              ━━━━━━━━━━━━━━━━━━
+
+              Your next move?
+              → /study
+              → /latest
+
+            ╰───────────────────╯
+            """.formatted(dto.username());
+    }
+    public static String formatQueue(List<AnalysisJobEntity> jobs) {
+        if (jobs.isEmpty()) {
+            return """
+                ✓ QUEUE IS EMPTY
+
+                No pending analyses.
+
+                ● ─── ◉ ─── ○
+                """;
+        }
+
+        StringBuilder builder = new StringBuilder("""
+            ◉ KAIZEN QUEUE
+            ━━━━━━━━━━━━━━━━━━━
+
+            ⏳ Pending analyses: %d
+
+            """.formatted(jobs.size()));
+
+        for (int index = 0; index < jobs.size(); index++) {
+            AnalysisJobEntity job = jobs.get(index);
+
+            String status = switch (job.getJobStatus()) {
+                case ANALYSIS_REQUESTED -> "◌ Requested";
+                case IN_QUEUE -> "⏳ In queue";
+                case COMPLETED -> "✓ Completed";
+                default -> "◉ " + job.getJobStatus();
+            };
+
+            builder.append("""
+                %d. %s
+                   ID: %s
+
+                """.formatted(
+                    index + 1,
+                    status,
+                    job.getCorrelationId()
+            ));
+        }
+
+        return builder.toString();
     }
 
 }

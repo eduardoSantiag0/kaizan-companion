@@ -12,7 +12,11 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "analysis_job_db")
+@Table(name = "analysis_job_db",
+        indexes = {
+            @Index(name="idx_job_chat", columnList = "chat_id")
+        }
+)
 @Getter
 @Slf4j
 @EntityListeners(AuditingEntityListener.class)

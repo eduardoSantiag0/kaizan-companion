@@ -95,6 +95,8 @@ public class AnalysisListener {
                 log.error("KataGo rejected {}: {}", correlationId, response);
                 // Falha definitiva, não tentar novamente
                 channel.basicNack(deliveryTag, false, false);
+                notificationService.sendErrorMessage(new ReplyWithText(dto.chatId(),
+                        MessageFormatter.requestFailed()));
                 return;
             }
 

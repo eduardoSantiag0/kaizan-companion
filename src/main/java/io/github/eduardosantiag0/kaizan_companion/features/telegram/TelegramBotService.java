@@ -41,6 +41,7 @@ public class TelegramBotService
     private final ResignCommandHandler resignCommandHandler;
     private final CollectionCommandHandler collectionCommandHandler;
     private final RandomCommandHandler randomCommandHandler;
+    private final QueueCommandHandler queueCommandHandler;
 
 
     private static final List<BotCommand> commandList = List.of(
@@ -54,7 +55,7 @@ public class TelegramBotService
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
             StudyCommandHandler studyCommandHandler,
-            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService, ResignCommandHandler resignCommandHandler, CollectionCommandHandler collectionCommandHandler, RandomCommandHandler randomCommandHandler) {
+            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService, ResignCommandHandler resignCommandHandler, CollectionCommandHandler collectionCommandHandler, RandomCommandHandler randomCommandHandler, QueueCommandHandler queueCommandHandler) {
         this.botName = botName;
         this.botToken = botToken;
         this.studyCommandHandler = studyCommandHandler;
@@ -64,6 +65,7 @@ public class TelegramBotService
         this.resignCommandHandler = resignCommandHandler;
         this.collectionCommandHandler = collectionCommandHandler;
         this.randomCommandHandler = randomCommandHandler;
+        this.queueCommandHandler = queueCommandHandler;
     }
 
     public String getBotUsername() {
@@ -112,6 +114,10 @@ public class TelegramBotService
 
             case "/random" ->
                 randomCommandHandler.executeCommand(update);
+
+            case "/queue" ->
+                queueCommandHandler.executeCommand(update);
+
             default -> {
                 notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), "Your commando does not exist"));
                 throw new UnknownCommandException("Your commando does not exist");
