@@ -9,7 +9,7 @@ public enum ECommands {
     MY_PROFILE("/my_profile"),
     UNLINK("/unlink"),
     QUEUE("/queue"),
-    DEMO("/demo");
+    RANDOM("/random");
 
     private final String name;
 
