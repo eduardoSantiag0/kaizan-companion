@@ -1,15 +1,16 @@
-package io.github.eduardosantiag0.kaizan_companion.features.telegram;
+package io.github.eduardosantiag0.kaizan_companion.utils;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.MinimalPlayer;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.model.SgfNode;
 import io.github.eduardosantiag0.sgf.parser.SgfParser;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+@UtilityClass
 public class MessageFormatter {
 
     public static String requestCompleted(String fileName) {
@@ -94,15 +95,23 @@ public class MessageFormatter {
               ◉ Player: %s
               ◉ Platform: OGS
 
-              ━━━━━━━━━━━━━━━━━━
-
-              Your next move?
-              → /study
-              → /latest
-
             ╰───────────────────╯
             """.formatted(dto.username());
     }
+
+    public static String formatEmailLinked(String email) {
+        return """
+            ⛩ KAIZEN COMPANION
+            ━━━━━━━━━━━━━━━━━━━
+
+            ✓ EMAIL LINKED!
+
+            ✉ %s
+
+            ● ─── ◉ ─── ○
+            """.formatted(email);
+    }
+
     public static String formatQueue(List<AnalysisJobEntity> jobs) {
         if (jobs.isEmpty()) {
             return """

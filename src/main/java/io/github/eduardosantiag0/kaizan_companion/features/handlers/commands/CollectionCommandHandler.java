@@ -9,8 +9,8 @@ import io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging.An
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import io.github.eduardosantiag0.sgf.parser.SgfParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpConnectException;
@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static io.github.eduardosantiag0.kaizan_companion._shared.GeneralValidator.isValidURL;
+import static io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator.isValidURL;
 
 @Service
 @Slf4j

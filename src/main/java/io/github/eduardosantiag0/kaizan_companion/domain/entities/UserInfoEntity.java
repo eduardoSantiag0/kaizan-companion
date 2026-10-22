@@ -23,6 +23,9 @@ public class UserInfoEntity {
     @JoinColumn(name = "chat_id", nullable = false)
     private TelegramChatEntity chat;
 
+    @Column(name = "telegram_username", nullable = false)
+    private String telegramUsername;
+
     @Setter
     @Column(name = "ogs_account_name")
     private String ogsAccountName;
@@ -36,10 +39,20 @@ public class UserInfoEntity {
     @Column(name = "email_address")
     private String emailAddress;
 
+
     public UserInfoEntity() {
     }
 
     public UserInfoEntity(TelegramChatEntity chat) {
         this.chat = chat;
+        this.telegramUsername = chat.getUsername();
+    }
+
+    @Override
+    public String toString() {
+        return  "Username='" + telegramUsername + '\'' +
+                ", Email='" + emailAddress + '\'' +
+                ", Ogs Account='" + ogsAccountName + '\''
+                ;
     }
 }

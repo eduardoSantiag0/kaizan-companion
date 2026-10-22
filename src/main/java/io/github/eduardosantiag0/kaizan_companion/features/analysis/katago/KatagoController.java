@@ -2,6 +2,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago;
 
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisAggregator;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodResponse;
+import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +22,7 @@ public class KatagoController {
     }
 
     @PostMapping
-    public ResponseEntity<Void>  receiveAnalysis(@RequestBody RunPodResponse response) throws IOException {
+    public ResponseEntity<Void>  receiveAnalysis(@RequestBody RunPodResponse response) throws IOException, MessagingException {
         aggregator.handleResponse(response);
         return ResponseEntity.ok().build();
 

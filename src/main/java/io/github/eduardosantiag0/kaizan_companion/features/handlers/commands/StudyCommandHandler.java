@@ -1,24 +1,21 @@
 package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.GlobalExceptionHandler;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging.AnalysisProducer;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 
-import static io.github.eduardosantiag0.kaizan_companion._shared.GeneralValidator.isValidURL;
+import static io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator.isValidURL;
 
 @Service
 @Slf4j

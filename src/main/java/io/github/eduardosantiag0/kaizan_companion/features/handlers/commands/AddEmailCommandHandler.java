@@ -1,0 +1,69 @@
+package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
+
+import io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.IOException;
+
+public class AddEmailCommandHandler implements CommandHandler {
+    private final TelegramChatRepository telegramChatRepository;
+    private final NotificationService notificationService;
+    private final UserInfoRepository userInfoRepository;
+
+    public AddEmailCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, UserInfoRepository userInfoRepository) {
+        this.telegramChatRepository = telegramChatRepository;
+        this.notificationService = notificationService;
+        this.userInfoRepository = userInfoRepository;
+    }
+
+    @Override
+    public ECommands getCommand() {
+        return ECommands.ADD_EMAIL;
+    }
+
+    @Override
+    public void executeCommand(Update update) throws TelegramApiException, IOException {
+        String[] fullMessage = update.getMessage().getText().split("\\s+");;
+        String email = fullMessage[1];
+
+        if (!GeneralValidator.isValidEmail(email)) {
+
+        }
+
+
+        Long chatId = update.getMessage().getChatId();
+        var chat = update.getMessage().getChat();
+
+        TelegramChatEntity entity = telegramChatRepository
+                .findById(chatId)
+                .orElseGet(() -> new TelegramChatEntity(
+                        chatId,
+                        chat.getFirstName(),
+                        chat.getUserName(),
+                        chat.getType(),
+                        true
+                ));
+
+        UserInfoEntity userInfo = new UserInfoEntity(entity);
+
+        userInfo.setEmailAddress(email);
+
+        userInfoRepository.save(userInfo);
+
+        notificationService.sendMessageToChat(new ReplyWithText(
+                chatId, MessageFormatter.formatEmailLinked(email)
+        ));
+
+
+    }
+}

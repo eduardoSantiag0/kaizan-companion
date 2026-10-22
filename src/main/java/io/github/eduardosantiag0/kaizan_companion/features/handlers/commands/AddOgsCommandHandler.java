@@ -5,12 +5,13 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.OgsSearchByUsernameDTO;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.MinimalPlayer;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -25,10 +26,12 @@ public class AddOgsCommandHandler implements CommandHandler {
     private final RestTemplate rest = new RestTemplate();
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
+    private final UserInfoRepository userInfoRepository;
 
-    public AddOgsCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService) {
+    public AddOgsCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, UserInfoRepository userInfoRepository) {
         this.telegramChatRepository = telegramChatRepository;
         this.notificationService = notificationService;
+        this.userInfoRepository = userInfoRepository;
     }
 
     @Override
@@ -81,6 +84,8 @@ public class AddOgsCommandHandler implements CommandHandler {
 
             userInfo.setOgsAccountId(playerInfo.id());
             userInfo.setOgsAccountName(playerInfo.username());
+
+            userInfoRepository.save(userInfo);
 
             telegramChatRepository.save(entity);
 

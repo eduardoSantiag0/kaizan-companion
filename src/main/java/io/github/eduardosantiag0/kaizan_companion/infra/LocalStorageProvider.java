@@ -2,10 +2,6 @@ package io.github.eduardosantiag0.kaizan_companion.infra;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.StorageException;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
-import io.github.eduardosantiag0.sgf.model.SgfCollection;
-import io.github.eduardosantiag0.sgf.model.SgfGameTree;
-import io.github.eduardosantiag0.sgf.model.SgfNode;
-import io.github.eduardosantiag0.sgf.parser.SgfParser;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +17,8 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
+
+import static io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern.resolveFileName;
 
 @Service
 @Profile("dev")
@@ -51,18 +48,6 @@ public class LocalStorageProvider implements IStorageProvider{
                     "Could not initialize storage directory: " + e.getMessage()
             );
         }
-    }
-
-    String resolveFileName (byte[] file, GamePhase phase) {
-//        logger.debug(Arrays.toString(file));
-        SgfCollection collection = new SgfParser().parse(file);
-        SgfGameTree game = collection.game(0);
-        SgfNode root = game.root();
-
-
-        String black = root.value("PB").orElse("desconhecido");
-        String white = root.value("PW").orElse("desconhecido");
-        return black + white + "_" + phase.name().toUpperCase() + "_" + UUID.randomUUID() + ".sgf";
     }
 
     @Override

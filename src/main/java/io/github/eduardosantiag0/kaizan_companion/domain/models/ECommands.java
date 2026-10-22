@@ -5,6 +5,7 @@ public enum ECommands {
     COLLECTION("/collection"),
     LAST_GAME("/last_game"),
     ADD_MY_OGS("/add-my-ogs"),
+    ADD_EMAIL("/add-email"),
     RESIGN("/resign"),
     MY_PROFILE("/my_profile"),
     UNLINK("/unlink"),

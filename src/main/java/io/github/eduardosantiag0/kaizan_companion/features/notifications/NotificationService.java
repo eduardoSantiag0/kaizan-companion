@@ -1,7 +1,8 @@
-package io.github.eduardosantiag0.kaizan_companion.features.telegram;
+package io.github.eduardosantiag0.kaizan_companion.features.notifications;
 
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.features.telegram.TelegramBotService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,6 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-
-import java.net.SocketException;
-import java.util.concurrent.TimeoutException;
 
 @Service
 public class NotificationService {
@@ -43,7 +41,6 @@ public class NotificationService {
                 .chatId(message.chatId())
                 .text(message.text())
                 .build();
-
 
         logger.info("\nSucesso! \n" + response.getText());
 //        try {

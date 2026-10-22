@@ -7,12 +7,10 @@ import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
-import org.springframework.beans.factory.annotation.Value;
+import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 

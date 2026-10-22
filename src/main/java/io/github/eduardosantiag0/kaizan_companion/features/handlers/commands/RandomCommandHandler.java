@@ -5,9 +5,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging.AnalysisProducer;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.OgsGameDownloader;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
@@ -15,8 +13,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 @Service

@@ -11,10 +11,10 @@ import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRe
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Service
 public class LastGameCommandHandler implements CommandHandler {

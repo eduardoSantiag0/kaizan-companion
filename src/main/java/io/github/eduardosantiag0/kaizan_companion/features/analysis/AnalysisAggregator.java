@@ -1,20 +1,19 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.GameAnalysisEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.*;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.GameAnalysisRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoAssembler;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodResponse;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.MessageFormatter;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies.ReplyWithFile;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.EmailService;
+import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
-import org.springframework.core.io.ByteArrayResource;
+import jakarta.mail.MessagingException;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +21,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -39,18 +38,22 @@ public class AnalysisAggregator {
     private final KatagoAssembler assembler;
     private final IStorageProvider storageProvider;
     private final GameAnalysisRepository gameAnalysisRepository;
+    private final EmailService emailService;
+    private final UserInfoRepository userInfoRepository;
 
 
-    public AnalysisAggregator(NotificationService notificationService, TelegramChatRepository chatRepository, AnalysisJobRepository jobRepository, KatagoAssembler assembler, IStorageProvider storageProvider, GameAnalysisRepository gameAnalysisRepository) {
+    public AnalysisAggregator(NotificationService notificationService, TelegramChatRepository chatRepository, AnalysisJobRepository jobRepository, KatagoAssembler assembler, IStorageProvider storageProvider, GameAnalysisRepository gameAnalysisRepository, EmailService emailService, UserInfoRepository userInfoRepository) {
         this.notificationService = notificationService;
         this.chatRepository = chatRepository;
         this.jobRepository = jobRepository;
         this.assembler = assembler;
         this.storageProvider = storageProvider;
         this.gameAnalysisRepository = gameAnalysisRepository;
+        this.emailService = emailService;
+        this.userInfoRepository = userInfoRepository;
     }
 
-    public void handleResponse(RunPodResponse response) throws IOException {
+    public void handleResponse(RunPodResponse response) throws IOException, MessagingException {
 
         AnalysisJobEntity jobEntity = jobRepository.findByCorrelationId(response.output().correlationId())
                 .orElseThrow(() -> new RuntimeException("Job  not found"));
@@ -65,8 +68,9 @@ public class AnalysisAggregator {
 
         GameAnalysisEntity gameAnalysisEntity = new GameAnalysisEntity(jobEntity, chatEntity);
 
-        String[] sgfs = new String[3];
         List<Future<?>> futures = new ArrayList<>();
+        String[] sgfs = new String[3];
+        byte[][] sgfsInBytes = new byte[3][];
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             response.output().output().criticalPoints()
@@ -77,14 +81,17 @@ public class AnalysisAggregator {
 
                 switch (point.phase()) {
                     case GamePhase.opening -> {
+                        sgfsInBytes[0] = data;
                         sgfs[0] = node;
                         gameAnalysisEntity.setOpeningAnalysed(node);
                     }
                     case GamePhase.middlegame -> {
+                        sgfsInBytes[1] = data;
                         sgfs[1] = node;
                         gameAnalysisEntity.setMiddlegameAnalysed(node);
                     }
                     case GamePhase.endgame -> {
+                        sgfsInBytes[2] = data;
                         sgfs[2] = node;
                         gameAnalysisEntity.setEndgameAnalysed(node);
                     }
@@ -111,6 +118,8 @@ public class AnalysisAggregator {
             }
         }
 
+
+
 //        gameAnalysisEntity.setFullAnalysedGame(String.valueOf(assembler.assebleAllPhases(gamePhases)));
 
         gameAnalysisRepository.save(gameAnalysisEntity);
@@ -118,5 +127,14 @@ public class AnalysisAggregator {
         jobEntity.setJobStatus(JobStatus.COMPLETED);
 
         chatEntity.setWaitingForAnalysis(false);
+
+        Optional<UserInfoEntity> optionalUser = userInfoRepository.findByChat(chatEntity);
+
+        if (optionalUser.isPresent() && optionalUser.get().getEmailAddress() != null) {
+            UserInfoEntity userEnity = optionalUser.get();
+            emailService.sendEmail(userEnity.getEmailAddress(), sgfsInBytes);
+
+        }
+
     }
 }

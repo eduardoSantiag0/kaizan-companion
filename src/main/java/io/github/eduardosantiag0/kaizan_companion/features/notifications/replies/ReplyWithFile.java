@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.features.telegram.dto.replies;
+package io.github.eduardosantiag0.kaizan_companion.features.notifications.replies;
 
 public record ReplyWithFile(
         Long chatId,
