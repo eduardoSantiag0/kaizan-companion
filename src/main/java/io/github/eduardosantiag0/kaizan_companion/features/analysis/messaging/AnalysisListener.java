@@ -79,11 +79,15 @@ public class AnalysisListener {
                     KatagoErrorMessage.class
             );
 
+
             if (response == null) {
                 throw new IllegalStateException(
                         "Empty KataGo response"
                 );
             }
+
+            job.setJobStatus(JobStatus.IN_QUEUE);
+            jobRepository.save(job);
 
             if (response.error() != null) {
                 job.setJobStatus(JobStatus.FAILED);
@@ -94,8 +98,6 @@ public class AnalysisListener {
                 return;
             }
 
-            job.setJobStatus(JobStatus.IN_QUEUE);
-            jobRepository.save(job);
 
             try {
                 notificationService.sendMessageToChat(

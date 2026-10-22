@@ -27,6 +27,7 @@ public class AnalysisJobEntity {
 
     @ManyToOne
     @JoinColumn(name = "chat_id", nullable = false)
+    @Setter
     private TelegramChatEntity chat;
 
 

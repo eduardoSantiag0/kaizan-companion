@@ -5,7 +5,11 @@ public enum ECommands {
     COLLECTION("/collection"),
     LAST_GAME("/last_game"),
     ADD_MY_OGS("/add-my-ogs"),
-    RESIGN("/resign");
+    RESIGN("/resign"),
+    MY_PROFILE("/my_profile"),
+    UNLINK("/unlink"),
+    QUEUE("/queue"),
+    DEMO("/demo");
 
     private final String name;
 

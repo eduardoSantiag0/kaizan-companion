@@ -9,7 +9,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandl
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.telegram.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -21,21 +21,20 @@ import java.io.IOException;
 import static io.github.eduardosantiag0.kaizan_companion._shared.GeneralValidator.isValidURL;
 
 @Service
+@Slf4j
 public class StudyCommandHandler implements CommandHandler {
 
     private final SourceContextStrategy sourceContextStrategy;
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
-    private final IStorageProvider storageProvider;
     private final AnalysisProducer analysisProducer;
 
-    private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    public StudyCommandHandler(SourceContextStrategy sourceContextStrategy, TelegramChatRepository chatRepository, NotificationService notificationService, IStorageProvider storageProvider, AnalysisProducer analysisProducer) {
+    public StudyCommandHandler(SourceContextStrategy sourceContextStrategy, TelegramChatRepository chatRepository,
+                               NotificationService notificationService, AnalysisProducer analysisProducer) {
         this.sourceContextStrategy = sourceContextStrategy;
         this.telegramChatRepository = chatRepository;
         this.notificationService = notificationService;
-        this.storageProvider = storageProvider;
         this.analysisProducer = analysisProducer;
     }
 
@@ -63,7 +62,7 @@ public class StudyCommandHandler implements CommandHandler {
         ByteArrayResource fileData = source.downloadGameById(id);
 
         if (fileData == null) {
-            logger.error("file data is null");
+            log.error("file data is null");
             return;
         }
 
@@ -86,7 +85,8 @@ public class StudyCommandHandler implements CommandHandler {
         entity.setWaitingForAnalysis(true);
         telegramChatRepository.save(entity);
 
-        analysisProducer.execute(entity, fileData);
+        analysisProducer.execute(chatId, fileData);
+
 
     }
 }

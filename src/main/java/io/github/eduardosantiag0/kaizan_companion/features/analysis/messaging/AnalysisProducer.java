@@ -5,6 +5,8 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEn
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.NullAnalysisQueryException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.messaging.RabbitMqUnavailableException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.JobSubmissionService;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisDTO;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
@@ -14,6 +16,7 @@ import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.parser.SgfParseException;
 import io.github.eduardosantiag0.sgf.parser.SgfParser;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -25,73 +28,61 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
-
 @Slf4j
 @Service
 public class AnalysisProducer {
 
-    private final AnalysisJobRepository analysisJobRepository;
-    private final RabbitTemplate rabbitTemplate;
-    private final String QUEUE;
+    private final JobSubmissionService jobSubmissionService;
     private final KatagoQueryBuilder queryBuilder;
+    private final RabbitTemplate rabbitTemplate;
+    private final String queue;
 
-    public AnalysisProducer(AnalysisJobRepository analysisJobRepository,
-                            RabbitTemplate rabbitTemplate,
-                            @Value("${rabbitmq.exchange.analysis.queue}")
-                            String queue, KatagoQueryBuilder queryBuilder) {
-        this.analysisJobRepository = analysisJobRepository;
-        this.rabbitTemplate = rabbitTemplate;
-        QUEUE = queue;
+    public AnalysisProducer(
+            JobSubmissionService jobSubmissionService,
+            KatagoQueryBuilder queryBuilder,
+            RabbitTemplate rabbitTemplate,
+            @Value("${rabbitmq.exchange.analysis.queue}") String queue
+    ) {
+        this.jobSubmissionService = jobSubmissionService;
         this.queryBuilder = queryBuilder;
+        this.rabbitTemplate = rabbitTemplate;
+        this.queue = queue;
     }
 
-
-    public void execute(TelegramChatEntity chat, ByteArrayResource fileData) throws SgfParseException, IOException {
+    public void execute(Long chatId, ByteArrayResource fileData)
+            throws SgfParseException, IOException {
 
         byte[] gameBytes = fileData.getContentAsByteArray();
 
         UUID correlationId = UUID.randomUUID();
 
-        AnalysisJobEntity jobEntity = new AnalysisJobEntity(chat, Instant.now(), correlationId);
-
-        SgfCollection collection;
-
-        try {
-            collection = new SgfParser().parse(gameBytes);
-        } catch (SgfParseException e) {
-            throw new SgfParseException(e.getMessage(), e.position(), e.line(), e.column());
-        }
-
+        SgfCollection collection = new SgfParser().parse(gameBytes);
         SgfGameTree game = collection.game(0);
-
-        jobEntity.setLinkToSource(String.valueOf(game.root().value("PC")));
-        jobEntity.setOriginalGame(new String(gameBytes, StandardCharsets.UTF_8));
-
 
         KatagoQuery query = queryBuilder.buildQuery(game, correlationId);
 
         if (query == null) {
-            throw  new NullAnalysisQueryException("Query is null");
+            throw new NullAnalysisQueryException("Query is null");
         }
 
-        AnalysisDTO dto = new AnalysisDTO (
-                jobEntity.getCorrelationId(),
-                jobEntity.getChat().getChatId()
+        AnalysisDTO dto = new AnalysisDTO(correlationId, chatId);
+
+        jobSubmissionService.saveJob(
+                chatId,
+                correlationId,
+                String.valueOf(game.root().value("PC")),
+                new String(gameBytes, StandardCharsets.UTF_8)
         );
 
         AnalysisCreatedEvent event = new AnalysisCreatedEvent(dto, query);
-        jobEntity.setJobStatus(JobStatus.ANALYSIS_REQUESTED);
-        analysisJobRepository.save(jobEntity);
 
         try {
-            rabbitTemplate.convertAndSend(QUEUE, event);
+            rabbitTemplate.convertAndSend(queue, event);
         } catch (AmqpConnectException e) {
             throw new RabbitMqUnavailableException(
                     "RabbitMQ is unavailable",
                     e
             );
         }
-
     }
-
 }

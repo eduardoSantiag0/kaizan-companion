@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class SourceContextStrategy {
 
-    private final OgsGameDownloader ogsGameDownloader;
+    private OgsGameDownloader ogsGameDownloader;
+
 
     public SourceContextStrategy(OgsGameDownloader ogsGameDownloader) {
         this.ogsGameDownloader = ogsGameDownloader;

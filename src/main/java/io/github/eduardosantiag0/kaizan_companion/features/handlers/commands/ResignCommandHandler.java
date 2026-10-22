@@ -49,6 +49,8 @@ public class ResignCommandHandler implements CommandHandler {
                 RunPodCancelledResponse.class
         );
 
+        Long chatId = update.getMessage().getChatId();
+
         String text;
 
         if (response.status() == JobStatus.CANCELLED) {
@@ -59,7 +61,7 @@ public class ResignCommandHandler implements CommandHandler {
         }
 
         notificationService.sendMessageToChat(
-                new ReplyWithText(update.getMessage().getChatId(),
+                new ReplyWithText(chatId,
                         text
                 )
         );
