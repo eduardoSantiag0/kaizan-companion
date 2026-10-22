@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
@@ -73,14 +74,13 @@ public class AddOgsCommandHandler implements CommandHandler {
                             chat.getFirstName(),
                             chat.getUserName(),
                             chat.getType(),
-                            null,
-                            null,
-                            null,
                             true
                     ));
 
-            entity.setOgsAccountName(playerInfo.username());
-            entity.setOgsAccountId(playerInfo.id());
+            UserInfoEntity userInfo = new UserInfoEntity(entity);
+
+            userInfo.setOgsAccountId(playerInfo.id());
+            userInfo.setOgsAccountName(playerInfo.username());
 
             telegramChatRepository.save(entity);
 

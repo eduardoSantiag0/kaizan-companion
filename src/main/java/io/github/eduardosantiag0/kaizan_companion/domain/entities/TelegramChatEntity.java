@@ -28,17 +28,17 @@ public class TelegramChatEntity {
     @Column(name = "type")
     private String type;
 
-    @Setter
-    @Column(name = "ogs_account_name")
-    private String ogsAccountName;
-
-    @Setter
-    @Column(name = "ogs_account_id")
-    private Long ogsAccountId;
-
-    @Setter
-    @Column(name = "email")
-    private String email;
+    //    @Setter
+//    @Column(name = "ogs_account_name")
+//    private String ogsAccountName;
+//
+//    @Setter
+//    @Column(name = "ogs_account_id")
+//    private Long ogsAccountId;
+//
+//    @Setter
+//    @Column(name = "email")
+//    private String email;
 
     @Setter
     @Column(name = "waiting_for_analysis")

@@ -115,9 +115,6 @@ public class RandomCommandHandler implements CommandHandler {
                         chat.getFirstName(),
                         chat.getUserName(),
                         chat.getType(),
-                        null,
-                        null,
-                        null,
                         true
                 ));
 

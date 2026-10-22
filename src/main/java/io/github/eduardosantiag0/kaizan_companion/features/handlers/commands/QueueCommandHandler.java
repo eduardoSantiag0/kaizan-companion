@@ -58,9 +58,6 @@ public class QueueCommandHandler implements CommandHandler {
                         chat.getFirstName(),
                         chat.getUserName(),
                         chat.getType(),
-                        null,
-                        null,
-                        null,
                         false
                 ));
 

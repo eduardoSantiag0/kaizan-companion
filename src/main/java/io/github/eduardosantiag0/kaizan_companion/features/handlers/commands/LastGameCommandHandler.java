@@ -1,11 +1,13 @@
 package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.GlobalExceptionHandler;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotConfiguredException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
+import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
@@ -22,6 +24,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 public class LastGameCommandHandler implements CommandHandler {
@@ -29,14 +32,16 @@ public class LastGameCommandHandler implements CommandHandler {
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
     private final SourceContextStrategy sourceContextStrategy;
+    private final UserInfoRepository userInfoRepository;
     private final IStorageProvider storageProvider;
 
     private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, SourceContextStrategy sourceContextStrategy, IStorageProvider storageProvider) {
+    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, SourceContextStrategy sourceContextStrategy, UserInfoRepository userInfoRepository, IStorageProvider storageProvider) {
         this.telegramChatRepository = telegramChatRepository;
         this.notificationService = notificationService;
         this.sourceContextStrategy = sourceContextStrategy;
+        this.userInfoRepository = userInfoRepository;
         this.storageProvider = storageProvider;
     }
 
@@ -49,10 +54,13 @@ public class LastGameCommandHandler implements CommandHandler {
     public void executeCommand(Update update) throws TelegramApiException, IOException {
         Long chatId = update.getMessage().getChatId();
 
-        TelegramChatEntity entity = telegramChatRepository.findById(chatId)
+        TelegramChatEntity chat = telegramChatRepository.findById(chatId)
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
 
-        if ((entity.getOgsAccountName() == null) || (entity.getOgsAccountId() == null)) {
+        UserInfoEntity user = userInfoRepository.findByChat(chat)
+                .orElse(new UserInfoEntity(chat));
+
+        if ((user.getOgsAccountName() == null) || (user.getOgsAccountId() == null)) {
             notificationService.sendErrorMessage(new ReplyWithText(chatId, "You must link your account first!\n"));
             throw new OgsAccountNotConfiguredException("Chat:" + chatId);
         }
@@ -61,7 +69,7 @@ public class LastGameCommandHandler implements CommandHandler {
         //TODO como resolver isso?
         ISourceStrategy source = sourceContextStrategy.setStrategy("https://online-go.com");
 
-        ByteArrayResource fileData = source.downloadLastGame(entity.getOgsAccountId());
+        ByteArrayResource fileData = source.downloadLastGame(user.getOgsAccountId());
 
         if (fileData == null) {
             logger.error("file data is null");
@@ -69,8 +77,8 @@ public class LastGameCommandHandler implements CommandHandler {
         } else logger.debug(fileData.toString());
 
 
-        entity.setWaitingForAnalysis(true);
-        telegramChatRepository.save(entity);
+        chat.setWaitingForAnalysis(true);
+        telegramChatRepository.save(chat);
 
 
         notificationService.sendMessageToChat(

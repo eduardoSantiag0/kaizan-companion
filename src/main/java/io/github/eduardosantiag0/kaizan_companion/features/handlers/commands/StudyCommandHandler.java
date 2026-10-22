@@ -76,9 +76,6 @@ public class StudyCommandHandler implements CommandHandler {
                         chat.getFirstName(),
                         chat.getUserName(),
                         chat.getType(),
-                        null,
-                        null,
-                        null,
                         true
                 ));
 
