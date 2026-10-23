@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -50,9 +51,19 @@ public class UserInfoEntity {
 
     @Override
     public String toString() {
-        return  "Username='" + telegramUsername + '\'' +
-                ", Email='" + emailAddress + '\'' +
-                ", Ogs Account='" + ogsAccountName + '\''
-                ;
+        return """
+            %s Username: %s
+            %s Email: %s
+            %s OGS Account: %s
+            """.formatted(
+                telegramUsername != null ? "◉" : "○",
+                Objects.toString(telegramUsername, "Not linked"),
+
+                emailAddress != null ? "◉" : "○",
+                Objects.toString(emailAddress, "Not linked"),
+
+                ogsAccountName != null ? "◉" : "○",
+                Objects.toString(ogsAccountName, "Not linked")
+        );
     }
 }

@@ -20,6 +20,7 @@ import org.thymeleaf.context.Context;
 public class EmailService {
 
     private static final String SGF_CONTENT_TYPE = "application/x-go-sgf";
+    private static final GamePhase[] PHASES = {GamePhase.opening, GamePhase.middlegame, GamePhase.endgame};
 
     private final JavaMailSender mailSender;
     private final String supportEmail;
@@ -35,36 +36,48 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendEmail(String to, byte[][] sgfInBytes) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
+    public void sendEmail(String to, byte[][] sgfInBytes) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
 
-        MimeMessageHelper helper = new MimeMessageHelper(
-                message,
-                true,
-                "UTF-8"
-        );
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    message,
+                    true,
+                    "UTF-8"
+            );
 
-        helper.setFrom(supportEmail);
+            helper.setFrom(supportEmail);
 
-        helper.setTo(to);
-        helper.setSubject("Kaizen Companion - Game Analysis");
-        helper.setText("Your Go game analysis is ready!");
+            helper.setTo(to);
+            helper.setSubject("Kaizen Companion - Game Analysis");
 
-        helper.addAttachment(
-                FilenamePattern.resolveFileName(sgfInBytes[0], GamePhase.opening),
-                new ByteArrayResource(sgfInBytes[0]), SGF_CONTENT_TYPE
-        );
-        helper.addAttachment(
-                FilenamePattern.resolveFileName(sgfInBytes[1], GamePhase.middlegame),
-                new ByteArrayResource(sgfInBytes[1]), SGF_CONTENT_TYPE
-        );
-        helper.addAttachment(
-                FilenamePattern.resolveFileName(sgfInBytes[2], GamePhase.endgame),
-                new ByteArrayResource(sgfInBytes[2]), SGF_CONTENT_TYPE
-        );
+            Context context = new Context();
+            context.setVariable("title", "Game Analysis Complete");
+            context.setVariable("message", "Your SGF files are attached");
 
-        mailSender.send(message);
-        log.info("SGF analysis email accepted by SMTP server: {}", to);
+            String html = templateEngine.process(
+                    "email-with-file",
+                    context
+            );
 
+            helper.setText(html, true);
+
+            for (int i = 0; i < sgfInBytes.length; i++) {
+                byte[] sgf = sgfInBytes[i];
+                if (sgf == null) {
+                    continue;
+                }
+                helper.addAttachment(
+                        FilenamePattern.resolveFileName(sgf, PHASES[i]),
+                        new ByteArrayResource(sgf), SGF_CONTENT_TYPE
+                );
+            }
+
+            mailSender.send(message);
+            log.info("SGF analysis email accepted by SMTP server: {}", to);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send SGF analysis email to {}: {}", to, e.getMessage());
+        }
     }
 }

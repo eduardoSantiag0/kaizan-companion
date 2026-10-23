@@ -49,38 +49,41 @@ public class KatagoAssembler {
         }
         return board;
     }
-
-
-    private static SgfNode buildSetupRoot(SgfGameTree originalTree, GoGame goGame, SgfNode originalMoveNode, StoneColor toMove) {
+    private static SgfNode buildSetupRoot(
+            SgfGameTree originalTree,
+            GoGame goGame,
+            SgfNode originalMoveNode,
+            StoneColor toMove
+    ) {
         int boardSize = goGame.boardSize();
 
         GoPosition positionBefore = goGame.positionBefore(originalMoveNode);
 
-        Map<SgfCoordinate, StoneColor> board = reconstructBoard(positionBefore, boardSize);
+        Map<SgfCoordinate, StoneColor> board =
+                reconstructBoard(positionBefore, boardSize);
 
         SgfNode newRoot = new SgfNode();
+
+        Set<String> excludedProperties = Set.of(
+                "AB", "AW", "AE", "PL", "C"
+        );
 
         for (SgfProperty property : originalTree.root().properties()) {
             String identifier = property.identifier();
 
-            if (!identifier.equals("AB")
-                    && !identifier.equals("AW")
-                    && !identifier.equals("AE")
-                    && !identifier.equals("PL"))
-            {
+            if (!excludedProperties.contains(identifier)) {
                 newRoot.setProperty(identifier, property.values());
             }
         }
 
         List<String> blackSetup = new ArrayList<>();
-        List<String> whiteSetup = new ArrayList<>();
 
+        List<String> whiteSetup = new ArrayList<>();
 
         board.forEach((coordinate, color) -> {
             String point = SgfMove.of(color, coordinate).toSgfValue();
             (color == StoneColor.BLACK ? blackSetup : whiteSetup).add(point);
         });
-
 
         if (!blackSetup.isEmpty()) {
             newRoot.setProperty("AB", blackSetup);

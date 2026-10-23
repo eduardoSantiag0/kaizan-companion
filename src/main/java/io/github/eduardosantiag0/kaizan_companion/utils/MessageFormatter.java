@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.utils;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.MinimalPlayer;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
@@ -35,6 +36,17 @@ public class MessageFormatter {
             """.formatted(black, white);
 
         return formatCompleted(match);
+    }
+
+    public static String formatMyProfile(UserInfoEntity userInfo) {
+        return """
+            ╭─── ⛩ KAIZEN ⛩ ───╮
+
+              ◉ MY PROFILE
+
+            %s
+            ╰───────────────────╯
+            """.formatted(userInfo.toString());
     }
 
     private static String formatCompleted(String details) {
@@ -99,7 +111,21 @@ public class MessageFormatter {
             """.formatted(dto.username());
     }
 
+    public static String formatUnlinked(String target) {
+        return """
+            ⛩ KAIZEN COMPANION
+            ━━━━━━━━━━━━━━━━━━━
+
+            ✓ UNLINKED!
+
+            ◉ %s is no longer linked to your profile
+
+            ● ─── ◉ ─── ○
+            """.formatted(target);
+    }
+
     public static String formatEmailLinked(String email) {
+
         return """
             ⛩ KAIZEN COMPANION
             ━━━━━━━━━━━━━━━━━━━

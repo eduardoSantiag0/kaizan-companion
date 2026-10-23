@@ -10,11 +10,13 @@ import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandl
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 
+@Service
 public class AddEmailCommandHandler implements CommandHandler {
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
@@ -35,13 +37,14 @@ public class AddEmailCommandHandler implements CommandHandler {
     public void executeCommand(Update update) throws TelegramApiException, IOException {
         String[] fullMessage = update.getMessage().getText().split("\\s+");;
         String email = fullMessage[1];
+        Long chatId = update.getMessage().getChatId();
 
         if (!GeneralValidator.isValidEmail(email)) {
-
+            notificationService.sendErrorMessage(new ReplyWithText(
+                    chatId, "✕ Invalid Email! ✕"));
+            return;
         }
 
-
-        Long chatId = update.getMessage().getChatId();
         var chat = update.getMessage().getChat();
 
         TelegramChatEntity entity = telegramChatRepository
