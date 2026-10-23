@@ -36,7 +36,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendEmail(String to, byte[][] sgfInBytes) {
+    public void sendEmail(String to, byte[][] sgfInBytes, String players, String username) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
 
@@ -54,6 +54,10 @@ public class EmailService {
             Context context = new Context();
             context.setVariable("title", "Game Analysis Complete");
             context.setVariable("message", "Your SGF files are attached");
+            context.setVariable("username", username);
+            context.setVariable("players", players);
+
+
 
             String html = templateEngine.process(
                     "email-with-file",

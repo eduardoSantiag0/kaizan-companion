@@ -22,4 +22,18 @@ public class FilenamePattern {
         return black + white + "_" + phase.name().toUpperCase() + "_" + UUID.randomUUID() + ".sgf";
     }
 
+    public static String getPlayersName(byte[] file) {
+
+        SgfCollection collection = new SgfParser().parse(file);
+        SgfGameTree game = collection.game(0);
+        SgfNode root = game.root();
+
+
+        String black = root.value("PB").orElse("desconhecido");
+        String white = root.value("PW").orElse("desconhecido");
+
+        return black + " vs " + white;
+
+    }
+
 }

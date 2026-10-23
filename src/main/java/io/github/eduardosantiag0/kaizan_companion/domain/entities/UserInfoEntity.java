@@ -20,7 +20,7 @@ public class UserInfoEntity {
     @Getter
     private UUID id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "chat_id", nullable = false)
     private TelegramChatEntity chat;
 
@@ -47,6 +47,14 @@ public class UserInfoEntity {
     public UserInfoEntity(TelegramChatEntity chat) {
         this.chat = chat;
         this.telegramUsername = chat.getUsername();
+    }
+
+    public UserInfoEntity(TelegramChatEntity chat, String ogsAccountName, Long ogsAccountId, String emailAddress) {
+        this.chat = chat;
+        this.ogsAccountName = ogsAccountName;
+        this.ogsAccountId = ogsAccountId;
+        this.telegramUsername = chat.getUsername();
+        this.emailAddress = emailAddress;
     }
 
     @Override

@@ -9,6 +9,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePha
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoAssembler;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodResponse;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.EmailService;
+import io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
@@ -132,7 +133,8 @@ public class AnalysisAggregator {
 
         if (optionalUser.isPresent() && optionalUser.get().getEmailAddress() != null) {
             UserInfoEntity userEnity = optionalUser.get();
-            emailService.sendEmail(userEnity.getEmailAddress(), sgfsInBytes);
+            emailService.sendEmail(userEnity.getEmailAddress(), sgfsInBytes,
+                    FilenamePattern.getPlayersName(sgfsInBytes[0]), chatEntity.getUsername());
 
         }
 
