@@ -2,7 +2,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotFoundException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.AccountNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
@@ -36,13 +36,12 @@ public class AddOgsCommandHandler implements CommandHandler {
 
     @Override
     public ECommands getCommand() {
-        return ECommands.ADD_MY_OGS;
+        return ECommands.ADD_ACCOUNT_OGS;
     }
 
     private String buidldEndpoint(String username) {
         return "https://online-go.com/api/v1/players/?username="+username;
 //        https://online-go.com/api/v1/players/?username=SuperDU69
-
     }
 
     @Override
@@ -56,7 +55,7 @@ public class AddOgsCommandHandler implements CommandHandler {
             var dto = rest.getForObject(endpoint, OgsSearchByUsernameDTO.class);
 
             if (dto.count() == 0) {
-                throw new OgsAccountNotFoundException("Username not found");
+                throw new AccountNotFoundException("Username not found");
             }
 
             if (dto.results().size() > 1) {
@@ -90,7 +89,7 @@ public class AddOgsCommandHandler implements CommandHandler {
             telegramChatRepository.save(entity);
 
             notificationService.sendMessageToChat(new ReplyWithText(
-                    chatId, MessageFormatter.formatOgsAcccountLinked(playerInfo)
+                    chatId, MessageFormatter.formatAccountLinked(playerInfo.username(), "OGS")
             ));
 
         } catch (RestClientException e) {

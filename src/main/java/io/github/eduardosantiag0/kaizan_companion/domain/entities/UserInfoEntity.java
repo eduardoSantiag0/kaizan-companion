@@ -40,6 +40,10 @@ public class UserInfoEntity {
     @Column(name = "email_address")
     private String emailAddress;
 
+    @Setter
+    @Column(name = "dgs_id")
+    private String dgsAccountId;
+
 
     public UserInfoEntity() {
     }

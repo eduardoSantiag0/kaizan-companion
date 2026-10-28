@@ -8,6 +8,8 @@ import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandl
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
@@ -47,40 +49,44 @@ public class StudyCommandHandler implements CommandHandler {
         String[] fullMessage = update.getMessage().getText().split("\\s+");
 
         String url = fullMessage[1];
-
-        if (!isValidURL(url)) {
-            return;
-        }
-
-        ISourceStrategy source = sourceContextStrategy.setStrategy(url);
-
-        String id = source.extractId(url);
-
-        ByteArrayResource fileData = source.downloadGameById(id);
-
-        if (fileData == null) {
-            log.error("file data is null");
-            return;
-        }
-
-
         Long chatId = update.getMessage().getChatId();
-        var chat = update.getMessage().getChat();
-        TelegramChatEntity entity = telegramChatRepository
-                .findById(chatId)
-                .orElseGet(() -> new TelegramChatEntity(
-                        chatId,
-                        chat.getFirstName(),
-                        chat.getUserName(),
-                        chat.getType(),
-                        true
-                ));
 
-        entity.setWaitingForAnalysis(true);
-        telegramChatRepository.save(entity);
+        try {
+            if (!isValidURL(url)) {
+                notificationService.sendErrorMessage(new ReplyWithText(chatId, MessageFormatter.requestFailed()));
+                return;
+            }
 
-        analysisProducer.execute(chatId, fileData);
+            ISourceStrategy source = sourceContextStrategy.setStrategy(url);
 
+            if (source == null) {
+                notificationService.sendErrorMessage(new ReplyWithText(chatId, MessageFormatter.requestFailed()));
+                return;
+            }
 
+            String id = source.extractId(url);
+
+            ByteArrayResource fileData = source.downloadGameById(id);
+
+            var chat = update.getMessage().getChat();
+            TelegramChatEntity entity = telegramChatRepository
+                    .findById(chatId)
+                    .orElseGet(() -> new TelegramChatEntity(
+                            chatId,
+                            chat.getFirstName(),
+                            chat.getUserName(),
+                            chat.getType(),
+                            true
+                    ));
+
+            entity.setWaitingForAnalysis(true);
+            telegramChatRepository.save(entity);
+
+            analysisProducer.execute(chatId, fileData);
+
+        } catch (RuntimeException e) {
+            log.error("Failed to process study request for url {}", url, e);
+            notificationService.sendErrorMessage(new ReplyWithText(chatId, MessageFormatter.requestFailed()));
+        }
     }
 }

@@ -46,20 +46,22 @@ public class TelegramBotService
     private final AddEmailCommandHandler addEmailCommandHandler;
     private final MyProfileCommandHandler myProfileCommandHandler;
     private final UnlinkCommandHandler unlinkCommandHandler;
+    private final AddDgsCommandHandler addDgsCommandHandler;
 
 
     private static final List<BotCommand> commandList = List.of(
             new BotCommand(STUDY.name(), "Upload your SGF to analyse your game"),
             new BotCommand(COLLECTION.name(), "Upload several games at once"),
-            new BotCommand(LAST_GAME.name(), "Get your latest game fast"),
-            new BotCommand(ADD_MY_OGS.name(), "Add your OGS username to track your games")
+            new BotCommand(LAST_GAME.name(), "Get your latest game"),
+            new BotCommand(ADD_ACCOUNT_OGS.name(), "Add your OGS username to track your games"),
+            new BotCommand(ADD_ACCOUNT_DRAGON.name(), "Add your Dragon Go Server username to track your games")
     );
 
     public TelegramBotService(
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
             StudyCommandHandler studyCommandHandler,
-            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService, ResignCommandHandler resignCommandHandler, CollectionCommandHandler collectionCommandHandler, RandomCommandHandler randomCommandHandler, QueueCommandHandler queueCommandHandler, AddEmailCommandHandler addEmailCommandHandler, MyProfileCommandHandler myProfileCommandHandler, UnlinkCommandHandler unlinkCommandHandler) {
+            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService, ResignCommandHandler resignCommandHandler, CollectionCommandHandler collectionCommandHandler, RandomCommandHandler randomCommandHandler, QueueCommandHandler queueCommandHandler, AddEmailCommandHandler addEmailCommandHandler, MyProfileCommandHandler myProfileCommandHandler, UnlinkCommandHandler unlinkCommandHandler, AddDgsCommandHandler addDgsCommandHandler) {
         this.botName = botName;
         this.botToken = botToken;
         this.studyCommandHandler = studyCommandHandler;
@@ -73,6 +75,7 @@ public class TelegramBotService
         this.addEmailCommandHandler = addEmailCommandHandler;
         this.myProfileCommandHandler = myProfileCommandHandler;
         this.unlinkCommandHandler = unlinkCommandHandler;
+        this.addDgsCommandHandler = addDgsCommandHandler;
     }
 
     public String getBotUsername() {
@@ -107,8 +110,11 @@ public class TelegramBotService
             case "/study" ->
                 studyCommandHandler.executeCommand(update);
 
-            case "/add-ogs-account" ->
+            case "/add-account-ogs" ->
                 addOgsCommandHandler.executeCommand(update);
+
+            case "/add-account-dragon" ->
+                addDgsCommandHandler.executeCommand(update);
 
             case "/last_game" ->
                 lastGameCommandHandler.executeCommand(update);
@@ -129,10 +135,10 @@ public class TelegramBotService
                 addEmailCommandHandler.executeCommand(update);
 
             case "/my-profile" ->
-                    myProfileCommandHandler.executeCommand(update);
+                myProfileCommandHandler.executeCommand(update);
 
             case "/unlink" ->
-                    unlinkCommandHandler.executeCommand(update);
+                unlinkCommandHandler.executeCommand(update);
 
             default -> {
                 notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), "Your commando does not exist"));

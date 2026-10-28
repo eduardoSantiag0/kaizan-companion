@@ -98,17 +98,17 @@ public class MessageFormatter {
 
     }
 
-    public static String formatOgsAcccountLinked(MinimalPlayer dto) {
+    public static String formatAccountLinked(String identifier, String platform) {
         return """
             ╭─── ⛩ KAIZEN ⛩ ───╮
 
               ✓ ACCOUNT LINKED!
 
               ◉ Player: %s
-              ◉ Platform: OGS
+              ◉ Platform: %s
 
             ╰───────────────────╯
-            """.formatted(dto.username());
+            """.formatted(identifier, platform);
     }
 
     public static String formatUnlinked(String target) {

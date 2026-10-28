@@ -9,7 +9,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfE
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.InvalidGameUrlException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.LastGameNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotConfiguredException;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotFoundException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.AccountNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.StorageException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.ChatNotificationException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
 
     // 404 - Not Found
     @ExceptionHandler({
-            OgsAccountNotFoundException.class,
+            AccountNotFoundException.class,
             InvalidGameUrlException.LatestGameNotFoundException.class,
             AnalysisJobNotFoundException.class,
             LastGameNotFoundException.class
