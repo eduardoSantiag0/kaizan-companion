@@ -8,7 +8,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAc
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
-import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.OgsGameDownloader;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
@@ -25,7 +25,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.io.IOException;
 
 @Service
-public class LastGameCommandHandler implements CommandHandler {
+public class LastGameCommandHandler implements ICommandHandler {
 
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;

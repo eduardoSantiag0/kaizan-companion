@@ -3,7 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodCancelledResponse;
-import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +15,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.io.IOException;
 
 @Service
-public class ResignCommandHandler implements CommandHandler {
+public class ResignCommandHandler implements ICommandHandler {
 
     record CancelRequest(String correlationId){}
 

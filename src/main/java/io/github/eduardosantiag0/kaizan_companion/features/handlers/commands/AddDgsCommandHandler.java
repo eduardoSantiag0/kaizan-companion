@@ -5,7 +5,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
-import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.dgs.dtos.DgsPlayerDTO;
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-public class AddDgsCommandHandler implements CommandHandler {
+public class AddDgsCommandHandler implements ICommandHandler {
 
     private static final Pattern UID_PATTERN = Pattern.compile("uid=(\\d+)");
 

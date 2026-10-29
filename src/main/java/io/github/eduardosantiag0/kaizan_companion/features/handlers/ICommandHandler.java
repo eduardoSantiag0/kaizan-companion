@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 
-public interface CommandHandler {
+public interface ICommandHandler {
     ECommands getCommand();
     void executeCommand(Update update) throws TelegramApiException, IOException;
 

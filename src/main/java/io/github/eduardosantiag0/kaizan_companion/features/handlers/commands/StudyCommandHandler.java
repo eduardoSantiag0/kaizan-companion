@@ -4,7 +4,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEn
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging.AnalysisProducer;
-import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
@@ -21,7 +21,7 @@ import static io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator.
 
 @Service
 @Slf4j
-public class StudyCommandHandler implements CommandHandler {
+public class StudyCommandHandler implements ICommandHandler {
 
     private final SourceContextStrategy sourceContextStrategy;
     private final TelegramChatRepository telegramChatRepository;

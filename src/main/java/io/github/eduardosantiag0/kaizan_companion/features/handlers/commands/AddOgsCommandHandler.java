@@ -6,7 +6,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.Accou
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
-import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
+import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.OgsSearchByUsernameDTO;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.MinimalPlayer;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
@@ -21,7 +21,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Slf4j
 @Service
-public class AddOgsCommandHandler implements CommandHandler {
+public class AddOgsCommandHandler implements ICommandHandler {
 
     private final RestTemplate rest = new RestTemplate();
     private final TelegramChatRepository telegramChatRepository;
