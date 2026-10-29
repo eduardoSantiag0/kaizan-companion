@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,7 @@ public class EmailService {
 
             MimeMessageHelper helper = new MimeMessageHelper(
                     message,
-                    true,
+                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
                     "UTF-8"
             );
 
@@ -58,13 +59,13 @@ public class EmailService {
             context.setVariable("players", players);
 
 
-
             String html = templateEngine.process(
                     "email-with-file",
                     context
             );
 
             helper.setText(html, true);
+            helper.addInline("springLogo", new ClassPathResource("templates/banner-email.png"));
 
             for (int i = 0; i < sgfInBytes.length; i++) {
                 byte[] sgf = sgfInBytes[i];

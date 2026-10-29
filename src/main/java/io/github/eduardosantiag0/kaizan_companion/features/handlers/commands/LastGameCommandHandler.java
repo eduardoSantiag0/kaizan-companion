@@ -9,8 +9,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.CommandHandler;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContextStrategy;
+import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.OgsGameDownloader;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
@@ -30,16 +29,16 @@ public class LastGameCommandHandler implements CommandHandler {
 
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
-    private final SourceContextStrategy sourceContextStrategy;
+    private final OgsGameDownloader ogsGameDownloader;
     private final UserInfoRepository userInfoRepository;
     private final IStorageProvider storageProvider;
 
     private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, SourceContextStrategy sourceContextStrategy, UserInfoRepository userInfoRepository, IStorageProvider storageProvider) {
+    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, OgsGameDownloader ogsGameDownloader, UserInfoRepository userInfoRepository, IStorageProvider storageProvider) {
         this.telegramChatRepository = telegramChatRepository;
         this.notificationService = notificationService;
-        this.sourceContextStrategy = sourceContextStrategy;
+        this.ogsGameDownloader = ogsGameDownloader;
         this.userInfoRepository = userInfoRepository;
         this.storageProvider = storageProvider;
     }
@@ -60,15 +59,12 @@ public class LastGameCommandHandler implements CommandHandler {
                 .orElse(new UserInfoEntity(chat));
 
         if ((user.getOgsAccountName() == null) || (user.getOgsAccountId() == null)) {
-            notificationService.sendErrorMessage(new ReplyWithText(chatId, "You must link your account first!\n"));
+            notificationService.sendErrorMessage(new ReplyWithText(chatId, "You must link your OGS account first!\n"));
             throw new OgsAccountNotConfiguredException("Chat:" + chatId);
         }
 
 
-        //TODO como resolver isso?
-        ISourceStrategy source = sourceContextStrategy.setStrategy("https://online-go.com");
-
-        ByteArrayResource fileData = source.downloadLastGame(user.getOgsAccountId());
+        ByteArrayResource fileData = ogsGameDownloader.downloadLastGame(user.getOgsAccountId());
 
         if (fileData == null) {
             logger.error("file data is null");

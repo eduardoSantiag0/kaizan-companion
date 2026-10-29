@@ -57,7 +57,15 @@ public class AddEmailCommandHandler implements CommandHandler {
                         true
                 ));
 
-        UserInfoEntity userInfo = new UserInfoEntity(entity);
+        UserInfoEntity userInfo = userInfoRepository
+                .findByChat(entity)
+                .orElseGet(() -> new UserInfoEntity(entity));
+
+//        if (userInfo.getEmailAddress() != null) {
+//            notificationService.sendErrorMessage(new ReplyWithText(
+//                    chatId, "✕ Email already linked! Use /unlink email to change it. ✕"));
+//            return;
+//        }
 
         userInfo.setEmailAddress(email);
 

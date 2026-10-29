@@ -69,7 +69,6 @@ public class OgsGameDownloader implements ISourceStrategy {
          return new ByteArrayResource(gameJson);
     }
 
-    @Override
     @Retryable(
             retryFor = {
                     ResourceAccessException.class,

@@ -60,7 +60,7 @@ public class SeedDatabase implements ApplicationRunner {
 
         userInfoRepository.save(userInfo);
 
-        log.debug("Criado o perfil: " + userInfo.toString());
+        log.debug("\nCriado o perfil: " + userInfo);
 
     }
 }

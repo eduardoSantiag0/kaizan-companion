@@ -61,9 +61,4 @@ public class DragonServerGameDownloader implements ISourceStrategy {
         return new ByteArrayResource(response.content().getBytes(StandardCharsets.UTF_8));
     }
 
-    @Override
-    public ByteArrayResource downloadLastGame(Long id) {
-        return null;
-    }
-
 }

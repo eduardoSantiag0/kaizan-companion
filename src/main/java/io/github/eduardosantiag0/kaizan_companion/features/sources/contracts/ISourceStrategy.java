@@ -5,7 +5,6 @@ import org.springframework.core.io.Resource;
 
 public interface ISourceStrategy {
     ByteArrayResource downloadGameById(String id);
-    ByteArrayResource downloadLastGame(Long id);
 
     String extractId(String url);
 }
