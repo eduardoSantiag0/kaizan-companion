@@ -34,4 +34,9 @@ public class TelegramChatEntity {
     @Column(name = "waiting_for_analysis")
     private boolean waitingForAnalysis;
 
+    @Setter
+    @Column(name = "is_drive_linked")
+    @Getter
+    private boolean isDriveLinked=false;
+
 }

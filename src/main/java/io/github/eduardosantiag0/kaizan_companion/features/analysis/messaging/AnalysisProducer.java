@@ -1,22 +1,16 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.NullAnalysisQueryException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.messaging.RabbitMqUnavailableException;
-import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
-import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.JobSubmissionService;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisDTO;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoQueryBuilder;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoQuery;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.parser.SgfParseException;
 import io.github.eduardosantiag0.sgf.parser.SgfParser;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -26,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.UUID;
 @Slf4j
 @Service
@@ -41,7 +34,7 @@ public class AnalysisProducer {
             JobSubmissionService jobSubmissionService,
             KatagoQueryBuilder queryBuilder,
             RabbitTemplate rabbitTemplate,
-            @Value("${rabbitmq.exchange.analysis.queue}") String queue
+            @Value("${rabbitmq.queue.analysis}") String queue
     ) {
         this.jobSubmissionService = jobSubmissionService;
         this.queryBuilder = queryBuilder;

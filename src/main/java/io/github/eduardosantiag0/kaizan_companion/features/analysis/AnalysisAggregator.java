@@ -8,7 +8,10 @@ import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRe
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoAssembler;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodResponse;
-import io.github.eduardosantiag0.kaizan_companion.infra.providers.email.EmailService;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.messaging.EmailNotificationEvent;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.messaging.EmailNotificationProducer;
+import io.github.eduardosantiag0.kaizan_companion.features.storage.messaging.DriveStorageEvent;
+import io.github.eduardosantiag0.kaizan_companion.features.storage.messaging.DriveStorageProducer;
 import io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
@@ -39,19 +42,20 @@ public class AnalysisAggregator {
     private final KatagoAssembler assembler;
     private final IStorageProvider storageProvider;
     private final GameAnalysisRepository gameAnalysisRepository;
-    private final EmailService emailService;
     private final UserInfoRepository userInfoRepository;
+    private final EmailNotificationProducer emailNotificationProducer;
+    private final DriveStorageProducer driveStorageProducer;
 
-
-    public AnalysisAggregator(NotificationService notificationService, TelegramChatRepository chatRepository, AnalysisJobRepository jobRepository, KatagoAssembler assembler, IStorageProvider storageProvider, GameAnalysisRepository gameAnalysisRepository, EmailService emailService, UserInfoRepository userInfoRepository) {
+    public AnalysisAggregator(NotificationService notificationService, TelegramChatRepository chatRepository, AnalysisJobRepository jobRepository, KatagoAssembler assembler, IStorageProvider storageProvider, GameAnalysisRepository gameAnalysisRepository, UserInfoRepository userInfoRepository, EmailNotificationProducer emailNotificationProducer, DriveStorageProducer driveStorageProducer) {
         this.notificationService = notificationService;
         this.chatRepository = chatRepository;
         this.jobRepository = jobRepository;
         this.assembler = assembler;
         this.storageProvider = storageProvider;
         this.gameAnalysisRepository = gameAnalysisRepository;
-        this.emailService = emailService;
         this.userInfoRepository = userInfoRepository;
+        this.emailNotificationProducer = emailNotificationProducer;
+        this.driveStorageProducer = driveStorageProducer;
     }
 
     public void handleResponse(RunPodResponse response) throws IOException, MessagingException {
@@ -120,7 +124,6 @@ public class AnalysisAggregator {
         }
 
 
-
 //        gameAnalysisEntity.setFullAnalysedGame(String.valueOf(assembler.assebleAllPhases(gamePhases)));
 
         gameAnalysisRepository.save(gameAnalysisEntity);
@@ -129,14 +132,23 @@ public class AnalysisAggregator {
 
         chatEntity.setWaitingForAnalysis(false);
 
+        dispatchExternalDeliveries(chatEntity, sgfsInBytes);
+    }
+
+    private void dispatchExternalDeliveries(TelegramChatEntity chatEntity,
+                                            byte[][] sgfsInBytes) {
         Optional<UserInfoEntity> optionalUser = userInfoRepository.findByChat(chatEntity);
 
-        if (optionalUser.isPresent() && optionalUser.get().getEmailAddress() != null) {
-            UserInfoEntity userEnity = optionalUser.get();
-            emailService.sendEmail(userEnity.getEmailAddress(), sgfsInBytes,
-                    FilenamePattern.getPlayersName(sgfsInBytes[0]), chatEntity.getUsername());
+        optionalUser
+                .map(UserInfoEntity::getEmailAddress)
+                .ifPresent(emailAddress -> emailNotificationProducer.send(
+                        new EmailNotificationEvent(emailAddress, sgfsInBytes,
+                                FilenamePattern.getPlayersName(sgfsInBytes[0]), chatEntity.getUsername())
+                ));
 
+        if (chatEntity.isDriveLinked()) {
+            driveStorageProducer.send(new DriveStorageEvent(sgfsInBytes,
+                    FilenamePattern.getPlayersName(sgfsInBytes[0]), chatEntity.getUsername()));
         }
-
     }
 }

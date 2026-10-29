@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.infra.providers.email;
 
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
+import io.github.eduardosantiag0.kaizan_companion.features.notifications.messaging.EmailNotificationEvent;
 import io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -35,7 +36,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendEmail(String to, byte[][] sgfInBytes, String players, String username) {
+    public void sendEmail(EmailNotificationEvent event) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
 
@@ -47,14 +48,14 @@ public class EmailService {
 
             helper.setFrom(supportEmail);
 
-            helper.setTo(to);
+            helper.setTo(event.to());
             helper.setSubject("Kaizen Companion - Game Analysis");
 
             Context context = new Context();
             context.setVariable("title", "Game Analysis Complete");
             context.setVariable("message", "Your SGF files are attached");
-            context.setVariable("username", username);
-            context.setVariable("players", players);
+            context.setVariable("username", event.username());
+            context.setVariable("players", event.players());
 
 
             String html = templateEngine.process(
@@ -64,6 +65,8 @@ public class EmailService {
 
             helper.setText(html, true);
             helper.addInline("springLogo", new ClassPathResource("templates/banner-email.png"));
+
+            var sgfInBytes = event.sgfInBytes();
 
             for (int i = 0; i < sgfInBytes.length; i++) {
                 byte[] sgf = sgfInBytes[i];
@@ -77,10 +80,10 @@ public class EmailService {
             }
 
             mailSender.send(message);
-            log.info("SGF analysis email accepted by SMTP server: {}", to);
+            log.info("SGF analysis email accepted by SMTP server: {}", event.to());
 
         } catch (MessagingException e) {
-            log.error("Failed to send SGF analysis email to {}: {}", to, e.getMessage());
+            log.error("Failed to send SGF analysis email to {}: {}", event.to(), e.getMessage());
         }
     }
 }

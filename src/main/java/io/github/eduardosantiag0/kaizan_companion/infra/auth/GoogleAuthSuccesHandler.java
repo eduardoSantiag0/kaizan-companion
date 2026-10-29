@@ -112,6 +112,9 @@ public class GoogleAuthSuccesHandler implements AuthenticationSuccessHandler {
 
             oAuthConnectionRepository.save(authConnectionEntity);
 
+            chatEntity.setDriveLinked(true);
+            chatRepository.save(chatEntity);
+
             session.removeAttribute("telegramChatId");
 
             response.setContentType("text/html;charset=UTF-8");

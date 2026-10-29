@@ -42,7 +42,7 @@ public class AnalysisListener {
     }
 
     @RabbitListener(
-            queues = "${rabbitmq.exchange.analysis.queue}",
+            queues = "${rabbitmq.queue.analysis}",
             ackMode = "MANUAL"
     )
     public void listen(

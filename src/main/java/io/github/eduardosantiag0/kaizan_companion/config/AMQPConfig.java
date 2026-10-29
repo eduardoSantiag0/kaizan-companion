@@ -22,31 +22,49 @@ public class AMQPConfig {
 //    O Direct Exchange decide para qual fila a mensagem vai.
 //    A Quorum Queue define como essa fila armazena e protege as mensagens.
 
-    public final String EXCHANGE_NAME;
-    public final String QUEUE_NAME;
-    public final String DLQ_NAME;
-    public final String ROUTING_KEY;
+    private final String EXCHANGE_NAME;
+    private final String QUEUE_NAME;
+    private final String DLQ_NAME;
+    private final String ANALYSIS_CREATED_ROUTING_KEY;
+
+    private final String DEAD_LETTER_EXCHANGE;
+    private final String DEAD_LETTER_ROUTING_KEY;
+
+    @Value("${rabbitmq.queue.external.email}")
+    private String EMAIL_QUEUE;
+    @Value("${rabbitmq.queue.external.email.routing-key}")
+    private String EMAIL_ROUTING_KEY;
+
+    @Value("${rabbitmq.queue.external.drive}")
+    private String DRIVE_QUEUE;
+    @Value("${rabbitmq.queue.external.drive.routing-key}")
+    private String DRIVE_ROUTING_KEY;
+
 
     @Value("${job.retry.max:3}")
     private int MAX_RETRIES;
 
-    private final String DEAD_LETTER_EXCHANGE = "analysis.dlx";
-    private final String DEAD_LETTER_ROUTING_KEY = "analysis.failed";
 
     public AMQPConfig(
             @Value("${rabbitmq.exchange.analysis.exchange}")
             String exchangeName,
-            @Value("${rabbitmq.exchange.analysis.queue}")
+            @Value("${rabbitmq.queue.analysis}")
             String queueName,
-            @Value("${rabbitmq.exchange.analysis.dlq}")
+            @Value("${rabbitmq.queue.analysis.dlq}")
             String dlqName,
             @Value("${rabbitmq.exchange.analysis.routing-key}")
-            String routingKey
+            String routingKey,
+            @Value("${rabbitmq.dlq.exchange}")
+            String DEAD_LETTER_EXCHANGE,
+            @Value("${rabbitmq.dlq.routing-key}")
+            String DEAD_LETTER_ROUTING_KEY
     ) {
-        EXCHANGE_NAME = exchangeName;
-        QUEUE_NAME = queueName;
-        DLQ_NAME = dlqName;
-        ROUTING_KEY = routingKey;
+        this.EXCHANGE_NAME = exchangeName;
+        this.QUEUE_NAME = queueName;
+        this.DLQ_NAME = dlqName;
+        this.ANALYSIS_CREATED_ROUTING_KEY = routingKey;
+        this.DEAD_LETTER_EXCHANGE=DEAD_LETTER_EXCHANGE;
+        this.DEAD_LETTER_ROUTING_KEY = DEAD_LETTER_ROUTING_KEY;
     }
 
 
@@ -61,27 +79,10 @@ public class AMQPConfig {
     }
 
     @Bean
-    public DirectExchange directExchange() {
-        return new DirectExchange(EXCHANGE_NAME);
+    public TopicExchange topicExchange() {
+        return new TopicExchange(EXCHANGE_NAME);
     }
 
-    // Reference https://oneuptime.com/blog/post/2026-01-24-configure-rabbitmq-quorum-queues/view
-    @Bean
-    public Queue analysisQueue() {
-        return QueueBuilder.durable(QUEUE_NAME)
-                .quorum()
-                .deliveryLimit(MAX_RETRIES)
-                .deadLetterExchange("analysis.dlx")
-                .deadLetterRoutingKey("analysis.failed")
-                .build();
-    }
-
-    @Bean
-    public Binding bindingQueueToExchange() {
-        return BindingBuilder.bind(analysisQueue())
-                .to(directExchange())
-                .with(ROUTING_KEY);
-    }
 
     @Bean
     public MessageConverter messageConverter() {
@@ -105,6 +106,58 @@ public class AMQPConfig {
         return rabbitTemplate;
     }
 
+
+
+
+    // QUEUE
+    @Bean
+    public Queue analysisQueue() {
+        return QueueBuilder.durable(QUEUE_NAME)
+                .quorum()
+                .deliveryLimit(MAX_RETRIES)
+                .deadLetterExchange(DEAD_LETTER_EXCHANGE)
+                .deadLetterRoutingKey(DEAD_LETTER_ROUTING_KEY)
+                .build();
+    }
+
+    @Bean
+    public Queue emailQueue() {
+        return QueueBuilder.durable(EMAIL_QUEUE)
+                .build();
+    }
+
+
+    @Bean
+    public Queue driveQueue() {
+        return QueueBuilder.durable(DRIVE_QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Binding bindingQueueToExchange() {
+        return BindingBuilder.bind(analysisQueue())
+                .to(topicExchange())
+                .with(ANALYSIS_CREATED_ROUTING_KEY);
+    }
+
+    // BINDING
+    @Bean
+    public Binding bindingEmailQueueToExchange() {
+        return BindingBuilder.bind(emailQueue())
+                .to(topicExchange())
+                .with(EMAIL_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding bindingDriveQueueToExchange() {
+        return BindingBuilder.bind(driveQueue())
+                .to(topicExchange())
+                .with(DRIVE_ROUTING_KEY);
+    }
+
+
+    // DLQ
+
     @Bean
     public Queue deadLetterQueue() {
         return QueueBuilder.durable(DLQ_NAME).build();
@@ -113,8 +166,8 @@ public class AMQPConfig {
     @Bean
     public Binding bindingDlqToExchange() {
         return BindingBuilder.bind(deadLetterQueue())
-                .to(directExchange())
-                .with("analysis.failed");
+                .to(topicExchange())
+                .with(DEAD_LETTER_ROUTING_KEY);
     }
 
 //    @Bean
