@@ -181,4 +181,8 @@ public class MessageFormatter {
         return builder.toString();
     }
 
-}
+    public static String formatLinkGoogle(String url) {
+        return "Click on the following link to connect: \n\n" + url;
+    }
+
+    }

@@ -11,7 +11,8 @@ public enum ECommands {
     MY_PROFILE("/my_profile"),
     UNLINK("/unlink"),
     QUEUE("/queue"),
-    RANDOM("/random");
+    RANDOM("/random"),
+    ADD_GOOGLE_DRIVE("/add-google-drive");
 
     private final String name;
 

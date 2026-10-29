@@ -8,7 +8,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRe
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoAssembler;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodResponse;
-import io.github.eduardosantiag0.kaizan_companion.features.notifications.EmailService;
+import io.github.eduardosantiag0.kaizan_companion.infra.providers.email.EmailService;
 import io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;

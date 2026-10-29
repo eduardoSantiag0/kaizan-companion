@@ -1,7 +1,8 @@
-package io.github.eduardosantiag0.kaizan_companion.infra;
+package io.github.eduardosantiag0.kaizan_companion.infra.providers.storage;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.StorageException;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
+import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ import static io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern.r
         name = "storage.provider",
         havingValue = "local"
 )
-public class LocalStorageProvider implements IStorageProvider{
+public class LocalStorageProvider implements IStorageProvider {
 
     @Value("${file.upload-dir}")
     private String fileUploadDir;

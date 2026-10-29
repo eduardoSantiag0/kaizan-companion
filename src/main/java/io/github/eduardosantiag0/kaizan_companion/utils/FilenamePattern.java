@@ -17,8 +17,8 @@ public class FilenamePattern {
         SgfNode root = game.root();
 
 
-        String black = root.value("PB").orElse("desconhecido");
-        String white = root.value("PW").orElse("desconhecido");
+        String black = root.value("PB").orElse("unknown");
+        String white = root.value("PW").orElse("unknown");
         return black + white + "_" + phase.name().toUpperCase() + "_" + UUID.randomUUID() + ".sgf";
     }
 
@@ -29,8 +29,8 @@ public class FilenamePattern {
         SgfNode root = game.root();
 
 
-        String black = root.value("PB").orElse("desconhecido");
-        String white = root.value("PW").orElse("desconhecido");
+        String black = root.value("PB").orElse("unknown");
+        String white = root.value("PW").orElse("unknown");
 
         return black + " vs " + white;
 

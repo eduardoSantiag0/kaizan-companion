@@ -47,6 +47,7 @@ public class TelegramBotService
     private final MyProfileCommandHandler myProfileCommandHandler;
     private final UnlinkCommandHandler unlinkCommandHandler;
     private final AddDgsCommandHandler addDgsCommandHandler;
+    private final AddGoogleDriveCommandHandler addGoogleDriveCommandHandler;
 
 
     private static final List<BotCommand> commandList = List.of(
@@ -61,7 +62,7 @@ public class TelegramBotService
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
             StudyCommandHandler studyCommandHandler,
-            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService, ResignCommandHandler resignCommandHandler, CollectionCommandHandler collectionCommandHandler, RandomCommandHandler randomCommandHandler, QueueCommandHandler queueCommandHandler, AddEmailCommandHandler addEmailCommandHandler, MyProfileCommandHandler myProfileCommandHandler, UnlinkCommandHandler unlinkCommandHandler, AddDgsCommandHandler addDgsCommandHandler) {
+            TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService, ResignCommandHandler resignCommandHandler, CollectionCommandHandler collectionCommandHandler, RandomCommandHandler randomCommandHandler, QueueCommandHandler queueCommandHandler, AddEmailCommandHandler addEmailCommandHandler, MyProfileCommandHandler myProfileCommandHandler, UnlinkCommandHandler unlinkCommandHandler, AddDgsCommandHandler addDgsCommandHandler, AddGoogleDriveCommandHandler addGoogleDriveCommandHandler) {
         this.botName = botName;
         this.botToken = botToken;
         this.studyCommandHandler = studyCommandHandler;
@@ -76,6 +77,7 @@ public class TelegramBotService
         this.myProfileCommandHandler = myProfileCommandHandler;
         this.unlinkCommandHandler = unlinkCommandHandler;
         this.addDgsCommandHandler = addDgsCommandHandler;
+        this.addGoogleDriveCommandHandler = addGoogleDriveCommandHandler;
     }
 
     public String getBotUsername() {
@@ -139,6 +141,8 @@ public class TelegramBotService
 
             case "/unlink" ->
                 unlinkCommandHandler.executeCommand(update);
+            case "/add-google-drive" ->
+                addGoogleDriveCommandHandler.executeCommand(update);
 
             default -> {
                 notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), "Your commando does not exist"));
