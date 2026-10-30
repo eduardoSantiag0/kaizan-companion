@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
-@Component
+@Configuration
 public class DebeziumConfig {
 
     private final OutboxPublisher outboxPublisher;
@@ -73,6 +74,7 @@ public class DebeziumConfig {
             Files.createDirectories(offsetPath.getParent());
         }
 
+//        https://debezium.io/documentation/reference/stable/connectors/postgresql.html
         Properties props = new Properties();
         props.setProperty("name", "kaizan-outbox-connector");
         props.setProperty("connector.class", "io.debezium.connector.postgresql.PostgresConnector");
@@ -90,8 +92,8 @@ public class DebeziumConfig {
 
         props.setProperty("plugin.name", "pgoutput");
         props.setProperty("slot.name", slotName);
-        props.setProperty("publication.autocreate.mode", "filtered");
-        props.setProperty("snapshot.mode", "never");
+        props.setProperty("publication.autocreate.mode", "all_tables");
+        props.setProperty("snapshot.mode", "no_data");
         props.setProperty("table.include.list", tableIncludeList);
         props.setProperty("tombstones.on.delete", "false");
 
@@ -100,9 +102,11 @@ public class DebeziumConfig {
         props.setProperty("key.converter.schemas.enable", "false");
         props.setProperty("value.converter.schemas.enable", "false");
 
+        props.setProperty("bootstrap.servers", "localhost:9092");
+
         engine = DebeziumEngine.create(Json.class)
                 .using(props)
-                .notifying(outboxPublisher::handleChangeEvent) // Notifica
+                .notifying(outboxPublisher::handleChangeEvent)
                 .build();
 
         executor.execute(engine);

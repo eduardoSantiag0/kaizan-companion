@@ -4,6 +4,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.Stora
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,11 +19,13 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 import static io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern.resolveFileName;
 
 @Service
 @Profile("dev")
+@Slf4j
 @ConditionalOnProperty(
         name = "storage.provider",
         havingValue = "local"
@@ -31,12 +34,11 @@ public class LocalStorageProvider implements IStorageProvider {
 
     @Value("${file.upload-dir}")
     private String fileUploadDir;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private Path PATH_FOLDER;
 
     @PostConstruct
     public void init() {
-        logger.info("Using storage provider: local");
+        log.info("Using storage provider: local");
 
         try {
             this.PATH_FOLDER = Files.createDirectories(
@@ -51,36 +53,17 @@ public class LocalStorageProvider implements IStorageProvider {
         }
     }
 
-    @Override
-    public String store(byte[] file) {
 
+    @Override
+    public Path store(byte[] file, GamePhase phase, UUID uuid) {
         // Extract sgf
-        //TODO tirar esse phase
-        String fileName = resolveFileName(file, GamePhase.opening);
+        String fileName = resolveFileName(file, phase, uuid);
         Path filePath = PATH_FOLDER.resolve(fileName);
 
         try {
-            Files.write(filePath, file);
-            logger.debug("\n\nFile name: {} in Path: {}\n\n", fileName, filePath );
-            return fileName;
-
-        } catch (IOException e) {
-            throw new StorageException(
-                    "Could not store file: " + fileName
-            );
-        }
-    }
-
-    @Override
-    public String store(byte[] file, GamePhase phase) {
-        // Extract sgf
-        String fileName = resolveFileName(file, phase);
-        Path filePath = PATH_FOLDER.resolve(fileName);
-
-        try {
-            Files.write(filePath, file);
-            logger.debug("\n\nFile name: {} in Path: {}\n\n", fileName, filePath );
-            return fileName;
+            var path = Files.write(filePath, file);
+            log.debug("\n\nFile name: {} in Path: {}\n\n", fileName, filePath );
+            return path;
 
         } catch (IOException e) {
             throw new StorageException(
@@ -119,6 +102,11 @@ public class LocalStorageProvider implements IStorageProvider {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+    }
+
+    @Override
+    public void delete(Path path) {
 
     }
 }

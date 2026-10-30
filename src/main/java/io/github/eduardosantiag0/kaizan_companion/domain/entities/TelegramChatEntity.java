@@ -17,6 +17,14 @@ public class TelegramChatEntity {
     public TelegramChatEntity() {
     }
 
+    public TelegramChatEntity(Long chatId, String firstName, String username, String type, boolean waitingForAnalysis) {
+        this.chatId = chatId;
+        this.firstName = firstName;
+        this.username = username;
+        this.type = type;
+        this.waitingForAnalysis = waitingForAnalysis;
+    }
+
     @Id
     @Column(name = "id")
     private Long chatId;
@@ -38,5 +46,11 @@ public class TelegramChatEntity {
     @Column(name = "is_drive_linked")
     @Getter
     private boolean isDriveLinked=false;
+
+    @Setter
+    @Getter
+    @Column(name = "drive_folder_id")
+    private String driveFolderId;
+
 
 }
