@@ -51,6 +51,8 @@ public class AnalysisListener {
             @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag
     ) throws IOException {
 
+        log.debug("Chegou no listener!");
+
         var dto = event.analysisDTO();
         var correlationId = dto.correlationId();
 

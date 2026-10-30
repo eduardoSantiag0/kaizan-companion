@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -103,7 +104,8 @@ public class AnalysisAggregator {
                 }
 
                 // Salvar e notificar com o ByteArrayResource
-                storageProvider.store(data, point.phase());
+                UUID uuid = UUID.randomUUID();
+                storageProvider.store(data, point.phase(), uuid);
                 notificationService.sendMessageToChat(
                         new ReplyWithFile(response.output().chatId(), data,
                                 MessageFormatter.requestCompleted(data)
@@ -147,7 +149,7 @@ public class AnalysisAggregator {
                 ));
 
         if (chatEntity.isDriveLinked()) {
-            driveStorageProducer.send(new DriveStorageEvent(sgfsInBytes,
+            driveStorageProducer.send(new DriveStorageEvent(chatEntity.getChatId(), sgfsInBytes,
                     FilenamePattern.getPlayersName(sgfsInBytes[0]), chatEntity.getUsername()));
         }
     }

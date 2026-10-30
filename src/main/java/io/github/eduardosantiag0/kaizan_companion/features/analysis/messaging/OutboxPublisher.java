@@ -45,6 +45,8 @@ public class OutboxPublisher {
             return;
         }
 
+        log.debug("Dentro do handle change event");
+
         JsonNode envelope = mapper.readTree(value);
 
         // insert (op = "c")

@@ -10,22 +10,22 @@ import org.springframework.stereotype.Service;
 public class EmailNotificationProducer {
 
     private final RabbitTemplate rabbitTemplate;
-    private final String queue;
+    private final String exchange;
     private final String routingKey;
 
     public EmailNotificationProducer(
             RabbitTemplate rabbitTemplate,
-            @Value("${rabbitmq.queue.external.email}") String queue,
+            @Value("${rabbitmq.exchange.analysis.exchange}") String exchange,
             @Value("${rabbitmq.queue.external.email.routing-key}") String routingKey
     ) {
         this.rabbitTemplate = rabbitTemplate;
-        this.queue = queue;
+        this.exchange = exchange;
         this.routingKey = routingKey;
     }
 
     public void send(EmailNotificationEvent event) {
         try {
-            rabbitTemplate.convertAndSend(queue, routingKey, event);
+            rabbitTemplate.convertAndSend(exchange, routingKey, event);
         } catch (AmqpConnectException e) {
             throw new RabbitMqUnavailableException("RabbitMQ is unavailable", e);
         }

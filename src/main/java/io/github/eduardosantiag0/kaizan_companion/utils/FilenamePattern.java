@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @UtilityClass
 public class FilenamePattern {
-    public static String resolveFileName (byte[] file, GamePhase phase) {
+    public static String resolveFileName (byte[] file, GamePhase phase, UUID randomId) {
         SgfCollection collection = new SgfParser().parse(file);
         SgfGameTree game = collection.game(0);
         SgfNode root = game.root();
@@ -19,7 +19,7 @@ public class FilenamePattern {
 
         String black = root.value("PB").orElse("unknown");
         String white = root.value("PW").orElse("unknown");
-        return black + white + "_" + phase.name().toUpperCase() + "_" + UUID.randomUUID() + ".sgf";
+        return black + white + "_" + phase.name().toUpperCase() + "_" + randomId + ".sgf";
     }
 
     public static String getPlayersName(byte[] file) {

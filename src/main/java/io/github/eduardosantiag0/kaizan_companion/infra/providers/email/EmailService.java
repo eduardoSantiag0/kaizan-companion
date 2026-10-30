@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.UUID;
+
 @Service
 @Slf4j
 public class EmailService {
@@ -67,14 +69,14 @@ public class EmailService {
             helper.addInline("springLogo", new ClassPathResource("templates/banner-email.png"));
 
             var sgfInBytes = event.sgfInBytes();
-
+            var uuid = UUID.randomUUID();
             for (int i = 0; i < sgfInBytes.length; i++) {
                 byte[] sgf = sgfInBytes[i];
                 if (sgf == null) {
                     continue;
                 }
                 helper.addAttachment(
-                        FilenamePattern.resolveFileName(sgf, PHASES[i]),
+                        FilenamePattern.resolveFileName(sgf, PHASES[i], uuid),
                         new ByteArrayResource(sgf), SGF_CONTENT_TYPE
                 );
             }

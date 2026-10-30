@@ -60,22 +60,15 @@ public class AnalysisProducer {
 
         AnalysisDTO dto = new AnalysisDTO(correlationId, chatId);
 
+        AnalysisCreatedEvent event = new AnalysisCreatedEvent(dto, query);
+
         jobSubmissionService.saveJob(
                 chatId,
                 correlationId,
                 String.valueOf(game.root().value("PC")),
-                new String(gameBytes, StandardCharsets.UTF_8)
+                new String(gameBytes, StandardCharsets.UTF_8),
+                event
         );
 
-        AnalysisCreatedEvent event = new AnalysisCreatedEvent(dto, query);
-
-        try {
-            rabbitTemplate.convertAndSend(queue, event);
-        } catch (AmqpConnectException e) {
-            throw new RabbitMqUnavailableException(
-                    "RabbitMQ is unavailable",
-                    e
-            );
-        }
     }
 }

@@ -35,7 +35,6 @@ public class UserInfoEntity {
     @Column(name = "ogs_account_id")
     private Long ogsAccountId;
 
-
     @Setter
     @Column(name = "email_address")
     private String emailAddress;
@@ -67,6 +66,7 @@ public class UserInfoEntity {
             %s Username: %s
             %s Email: %s
             %s OGS Account: %s
+            %s Dragon Go Server ID: %s
             """.formatted(
                 telegramUsername != null ? "◉" : "○",
                 Objects.toString(telegramUsername, "Not linked"),
@@ -75,7 +75,11 @@ public class UserInfoEntity {
                 Objects.toString(emailAddress, "Not linked"),
 
                 ogsAccountName != null ? "◉" : "○",
-                Objects.toString(ogsAccountName, "Not linked")
+                Objects.toString(ogsAccountName, "Not linked"),
+
+                dgsAccountId!= null ? "◉" : "○",
+                Objects.toString(dgsAccountId, "Not linked")
+
         );
     }
 }
