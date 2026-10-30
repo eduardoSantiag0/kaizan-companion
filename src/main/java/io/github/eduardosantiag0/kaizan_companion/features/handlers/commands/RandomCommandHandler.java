@@ -54,7 +54,7 @@ public class RandomCommandHandler implements ICommandHandler {
             Map.entry((short) 28, "35215830"),
             Map.entry((short) 29, "5219047"),
             Map.entry((short) 30, "71079776"),
-            Map.entry((short) 31, "71079777"),
+            Map.entry((short) 31, "91944703"),
             Map.entry((short) 32, "40102110"),
             Map.entry((short) 33, "58208576"),
             Map.entry((short) 34, "90681547"),
@@ -68,13 +68,21 @@ public class RandomCommandHandler implements ICommandHandler {
             Map.entry((short) 42, "46889359"),
             Map.entry((short) 43, "12966503"),
             Map.entry((short) 44, "40617904"),
-            Map.entry((short) 45, "24471878"),
-            Map.entry((short) 46, "84595802"),
-            Map.entry((short) 47, "84595801"),
-            Map.entry((short) 48, "84595690"),
-            Map.entry((short) 49, "84595803"),
+            Map.entry((short) 45, "91952295"),
+            Map.entry((short) 46, "91631487"),
+            Map.entry((short) 47, "91486146"),
+            Map.entry((short) 48, "91106488"),
+            Map.entry((short) 49, "91840238"),
             Map.entry((short) 50, "34535737")
     );
+
+//    https://online-go.com/game/71079777
+//    https://online-go.com/game/24471878
+//    https://online-go.com/game/84595802
+//    https://online-go.com/game/84595801
+//    https://online-go.com/game/84595690
+//    https://online-go.com/game/84595803
+
 
     public RandomCommandHandler(OgsGameDownloader ogsGameDownloader,TelegramChatRepository telegramChatRepository, AnalysisProducer analysisProducer) {
         this.ogsGameDownloader = ogsGameDownloader;

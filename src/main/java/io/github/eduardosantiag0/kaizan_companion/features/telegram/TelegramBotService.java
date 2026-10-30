@@ -55,7 +55,14 @@ public class TelegramBotService
             new BotCommand(COLLECTION.name(), "Upload several games at once"),
             new BotCommand(LAST_GAME.name(), "Get your latest game"),
             new BotCommand(ADD_ACCOUNT_OGS.name(), "Add your OGS username to track your games"),
-            new BotCommand(ADD_ACCOUNT_DRAGON.name(), "Add your Dragon Go Server username to track your games")
+            new BotCommand(ADD_ACCOUNT_DRAGON.name(), "Add your Dragon Go Server username to track your games"),
+            new BotCommand(ADD_EMAIL.name(), "Link an email to receive your analysed games"),
+            new BotCommand(ADD_GOOGLE_DRIVE.name(), "Connect your Google Drive to store analysed games"),
+            new BotCommand(MY_PROFILE.name(), "Show your linked accounts and email"),
+            new BotCommand(UNLINK.name(), "Unlink your email or OGS account"),
+            new BotCommand(QUEUE.name(), "Show your pending analysis jobs"),
+            new BotCommand(RANDOM.name(), "Analyse a random OGS game"),
+            new BotCommand(RESIGN.name(), "Cancel a running analysis job")
     );
 
     public TelegramBotService(

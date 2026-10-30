@@ -46,10 +46,33 @@ public class AnalysisProducer {
             throws SgfParseException, IOException {
 
         byte[] gameBytes = fileData.getContentAsByteArray();
+        String sgfContent = new String(gameBytes, StandardCharsets.UTF_8);
 
         UUID correlationId = UUID.randomUUID();
+        SgfCollection collection;
 
-        SgfCollection collection = new SgfParser().parse(gameBytes);
+        try {
+            collection = new SgfParser().parse(gameBytes);
+
+        } catch (SgfParseException e) {
+
+            if (e.getMessage() == null ||
+                    !e.getMessage().contains("Invalid property identifier 'CoPyright'")) {
+                throw e;
+            }
+
+            String correctedSgf = sgfContent.replace(
+                    "CoPyright[",
+                    "CP["
+            );
+            sgfContent = correctedSgf;
+
+            collection = new SgfParser().parse(
+                    sgfContent.getBytes(StandardCharsets.UTF_8)
+            );
+
+        }
+
         SgfGameTree game = collection.game(0);
 
         KatagoQuery query = queryBuilder.buildQuery(game, correlationId);

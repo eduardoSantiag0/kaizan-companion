@@ -28,18 +28,27 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator.isValidURL;
-
 @Service
 @Slf4j
 public class CollectionCommandHandler implements ICommandHandler {
+
     private final TelegramChatRepository telegramChatRepository;
     private final SourceContextStrategy sourceContextStrategy;
     private final AnalysisProducer analysisProducer;
     private final NotificationService notificationService;
 
+    // Task assincrona com URL original para debug
+    private record GameTask(
+            String url,
+            Future<?> future
+    ) {}
 
-
-    public CollectionCommandHandler(TelegramChatRepository telegramChatRepository, SourceContextStrategy sourceContextStrategy, AnalysisProducer analysisProducer, NotificationService notificationService) {
+    public CollectionCommandHandler(
+            TelegramChatRepository telegramChatRepository,
+            SourceContextStrategy sourceContextStrategy,
+            AnalysisProducer analysisProducer,
+            NotificationService notificationService
+    ) {
         this.telegramChatRepository = telegramChatRepository;
         this.sourceContextStrategy = sourceContextStrategy;
         this.analysisProducer = analysisProducer;
@@ -52,12 +61,24 @@ public class CollectionCommandHandler implements ICommandHandler {
     }
 
     @Override
-    public void executeCommand(Update update) throws TelegramApiException, IOException {
-        String[] fullMessage = update.getMessage().getText().split("\\s+");
+    public void executeCommand(Update update)
+            throws TelegramApiException, IOException {
 
-        final List<String> gamesRequested = List.of(Arrays.copyOfRange(fullMessage, 1, fullMessage.length));
+        String[] fullMessage =
+                update.getMessage().getText().split("\\s+");
+
+        final List<String> gamesRequested = List.of(
+                Arrays.copyOfRange(
+                        fullMessage,
+                        1,
+                        fullMessage.length
+                )
+        );
+
 
         Long chatId = update.getMessage().getChatId();
+
+        var chat = update.getMessage().getChat();
 
         if (gamesRequested.size() > 5) {
             notificationService.sendErrorMessage(new ReplyWithText(
@@ -66,7 +87,6 @@ public class CollectionCommandHandler implements ICommandHandler {
             return;
         }
 
-        var chat = update.getMessage().getChat();
         TelegramChatEntity entity = telegramChatRepository
                 .findById(chatId)
                 .orElseGet(() -> telegramChatRepository.save(
@@ -79,73 +99,103 @@ public class CollectionCommandHandler implements ICommandHandler {
                         )
                 ));
 
-        List<Future<?>> resultsPerTask = new ArrayList<>();
-
+        List<GameTask> resultsPerTask = new ArrayList<>();
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            gamesRequested.forEach(url -> resultsPerTask.add(
-                    executor.submit(() -> {
-                        if (!isValidURL(url)) {
-                            return;
-                        }
+            for (String url : gamesRequested) {
+                Future<?> future = executor.submit(() -> {
 
-                        ISourceStrategy source = sourceContextStrategy.setStrategy(url);
+                    if (!isValidURL(url)) {
+                        throw new IllegalArgumentException(
+                                "Invalid URL: " + url
+                        );
+                    }
 
-                        String id = source.extractId(url);
+                    ISourceStrategy source =
+                            sourceContextStrategy.setStrategy(url);
 
-                        ByteArrayResource fileData = source.downloadGameById(id);
+                    String id = source.extractId(url);
 
-                        if (fileData == null) {
-                            log.error("file data is null");
-                            throw new EmptySgfException("file data is null");
-                        }
-                        try {
-                            analysisProducer.execute(chatId, fileData);
-                        } catch (IOException | SgfParseException e) {
-                            throw new RuntimeException(e);
-                        } catch (AmqpConnectException e) {
-                            throw new RabbitMqUnavailableException(
-                                    "RabbitMQ is unavailable",
-                                    e
-                            );
-                        }
+                    ByteArrayResource fileData =
+                            source.downloadGameById(id);
 
-                    })
-            ));
+                    if (fileData == null) {
+                        throw new EmptySgfException(
+                                "File data is null"
+                        );
+                    }
+
+                    try {
+                        analysisProducer.execute(chatId, fileData);
+
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException(e);
+
+                    } catch (AmqpConnectException e) {
+                        throw new RabbitMqUnavailableException(
+                                "RabbitMQ is unavailable",
+                                e
+                        );
+                    }
+
+                });
+
+                resultsPerTask.add(new GameTask(url, future));
+            }
         }
 
         List<Throwable> errors = new ArrayList<>();
+        List<String> failedUrls = new ArrayList<>();
 
-        // Adiciona os erros que ocorreram em erros
-        for (Future<?> future : resultsPerTask) {
+        for (GameTask task : resultsPerTask) {
             try {
-                future.get();
+                task.future().get();
+
             } catch (ExecutionException e) {
-                errors.add(e.getCause());
+                failedUrls.add(task.url());
+                RuntimeException error = new RuntimeException(
+                        "Failed to process URL: " + task.url(),
+                        e.getCause()
+                );
+                errors.add(error);
+                log.error(
+                        "Failed to process game: {}",
+                        task.url(),
+                        e.getCause()
+                );
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException("Interrupted", e);
             }
         }
+        int successfulTasks = resultsPerTask.size() - errors.size();
+        if (successfulTasks > 0) {
+            entity.setWaitingForAnalysis(true);
+            telegramChatRepository.save(entity);
+        }
 
-        // Agora lança os erros
+        log.info(
+                "Collection completed: {} successful, {} failed",
+                successfulTasks,
+                errors.size()
+        );
+
+        // Exceção agregada
         if (!errors.isEmpty()) {
-            RuntimeException agg =
-                    new RuntimeException("Some tasks failed");
+
+            RuntimeException agg = new RuntimeException(
+                    "Failed to process " + errors.size()
+                            + " games:\n"
+                            + String.join("\n", failedUrls)
+            );
 
             errors.forEach(agg::addSuppressed);
 
             throw agg;
         }
-
-        if (!resultsPerTask.isEmpty()) {
-            entity.setWaitingForAnalysis(true);
-            telegramChatRepository.save(entity);
-        }
-
     }
 }
-
 
 
 // Executor recebe uma tarefa e decidir como executá-la.

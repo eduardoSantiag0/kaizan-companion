@@ -42,7 +42,6 @@ public class KatagoQueryBuilder {
         return KatagoQuery.builder()
                 .id(String.valueOf(correlationId))
                 .initialStone(ConverterSGFtoGTP.convertInitialStonesToGTP(game.root(), Integer.parseInt(size)))
-                .initialStone(ConverterSGFtoGTP.convertInitialStonesToGTP(game.root(), Integer.parseInt(size)))
                 .moves(ConverterSGFtoGTP.convertMovesSGFtoGTP(game.moves(), Integer.parseInt(size)))
                 .rules(root.value("RU").get())
                 .komi(Float.parseFloat(root.value("KM").get()))

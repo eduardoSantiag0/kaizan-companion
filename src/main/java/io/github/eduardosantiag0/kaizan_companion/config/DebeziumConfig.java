@@ -106,7 +106,7 @@ public class DebeziumConfig {
 
         engine = DebeziumEngine.create(Json.class)
                 .using(props)
-                .notifying(outboxPublisher::handleChangeEvent)
+                .notifying(outboxPublisher)
                 .build();
 
         executor.execute(engine);
