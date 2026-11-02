@@ -2,6 +2,7 @@ package io.github.eduardosantiag0.kaizan_companion.domain.entities;
 
 public enum JobStatus {
     ANALYSIS_REQUESTED,
+    SUBMITTING,
     CANCELLED,
     FAILED,
     IN_QUEUE,

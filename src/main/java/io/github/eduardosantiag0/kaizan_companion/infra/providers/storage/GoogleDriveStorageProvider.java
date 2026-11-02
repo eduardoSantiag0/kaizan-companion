@@ -12,6 +12,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramCh
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.storage.messaging.DriveStorageEvent;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
+import io.github.eduardosantiag0.kaizan_companion.infra.security.EncryptionService;
 import io.github.eduardosantiag0.kaizan_companion.infra.security.GoogleTokenService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,7 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
 
     private final GoogleTokenService tokenService;
     private final TelegramChatRepository chatRepository;
+    private final EncryptionService encryptionService;
 
     private Path tempPath;
 
@@ -74,7 +76,8 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
 
 
     private Drive getCredentials(Long chatId) {
-        String accessToken = tokenService.getValidAccessToken(chatId);
+
+        String accessToken = encryptionService.decrypt(tokenService.getValidAccessToken(chatId));
 
         Credential credential = new Credential(
                 BearerToken.authorizationHeaderAccessMethod()
@@ -90,7 +93,6 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
                 .build();
     }
 
-//    MimeType de pasta no Google Drive é 'application/vnd.google-apps.folder'
 
     private String createDirectory(Drive driveInstance) {
         File folderMetadata = new File();
@@ -101,6 +103,7 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
             File folder = driveInstance.files().create(folderMetadata)
                     .setFields("id")
                     .execute();
+            log.debug("Folder ID: {}", folder.getId());
             return folder.getId();
         } catch (IOException e) {
             throw new RuntimeException("Failed to create Drive directory", e);
@@ -109,6 +112,8 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
 
     public void uploadFile(DriveStorageEvent event) {
         Drive driveInstance = getCredentials(event.chatId());
+
+        log.debug("Instance do Drive gerado: {}", driveInstance.getApplicationName());
 
         byte[][] sgfsInBytes = event.sgfInBytes();
 
@@ -138,6 +143,7 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
             }
 
             for (GameToUpload game : games) {
+                log.debug("Fazendo upload do jogo: {}", game.fileName);
                 File fileMetadata = new File();
                 fileMetadata.setParents(Collections.singletonList(folderId));
                 fileMetadata.setName(game.fileName());

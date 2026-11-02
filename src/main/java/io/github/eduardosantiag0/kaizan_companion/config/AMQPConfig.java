@@ -4,16 +4,26 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.config.StatelessRetryOperationsInterceptor;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.amqp.autoconfigure.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.interceptor.RetryOperationsInterceptor;
+
+import java.time.Duration;
+
+import static java.time.Duration.*;
 
 
 @Configuration
@@ -114,6 +124,8 @@ public class AMQPConfig {
     public Queue analysisQueue() {
         return QueueBuilder.durable(QUEUE_NAME)
                 .quorum()
+//                .ttl((int) Duration.ofDays(2).toMillis())
+//                .maxLength(1000L) //TODO Pensar sobre esses valores
                 .deliveryLimit(MAX_RETRIES)
                 .deadLetterExchange(DEAD_LETTER_EXCHANGE)
                 .deadLetterRoutingKey(DEAD_LETTER_ROUTING_KEY)
@@ -133,6 +145,9 @@ public class AMQPConfig {
                 .build();
     }
 
+
+    // BINDING
+
     @Bean
     public Binding bindingQueueToExchange() {
         return BindingBuilder.bind(analysisQueue())
@@ -140,7 +155,6 @@ public class AMQPConfig {
                 .with(ANALYSIS_CREATED_ROUTING_KEY);
     }
 
-    // BINDING
     @Bean
     public Binding bindingEmailQueueToExchange() {
         return BindingBuilder.bind(emailQueue())
@@ -159,6 +173,12 @@ public class AMQPConfig {
     // DLQ
 
     @Bean
+    public DirectExchange deadLetterExchange() {
+        return new DirectExchange(DEAD_LETTER_EXCHANGE);
+    }
+
+
+    @Bean
     public Queue deadLetterQueue() {
         return QueueBuilder.durable(DLQ_NAME).build();
     }
@@ -166,33 +186,40 @@ public class AMQPConfig {
     @Bean
     public Binding bindingDlqToExchange() {
         return BindingBuilder.bind(deadLetterQueue())
-                .to(topicExchange())
+                .to(deadLetterExchange())
                 .with(DEAD_LETTER_ROUTING_KEY);
     }
+
+    // Retry com Backoff + TTL
+//    Spring Retry, pois seu problema imediato é uma falha HTTP temporária ao acessar o RunPod.
+
+    // Stateless: Thread fica parada
+    // Stateful: Faz requeue e liber a thread
+    // Stateful com Rettry + TTL
 
 //    @Bean
 //    public StatelessRetryOperationsInterceptor retryInterceptor() {
 //        return RetryInterceptorBuilder.stateless()
-//                .maxRetries(3)
+//                .maxRetries(MAX_RETRIES)
 //                .backOffOptions(1000, 2.0, 10000)
 //                .recoverer(new RejectAndDontRequeueRecoverer())
 //                .build();
 //    }
-//
-//    @Bean
-//    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
-//            ConnectionFactory connectionFactory,
-//            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+            ConnectionFactory connectionFactory,
+            SimpleRabbitListenerContainerFactoryConfigurer configurer
 //            RetryOperationsInterceptor retryInterceptor
-//    ) {
-//        var factory = new SimpleRabbitListenerContainerFactory();
-//
-//        configurer.configure(factory, connectionFactory);
-//
-//        factory.setAcknowledgeMode(AcknowledgeMode.AUTO);
+    ) {
+        var factory = new SimpleRabbitListenerContainerFactory();
+        factory.setReceiveTimeout(10000L);
+
+        configurer.configure(factory, connectionFactory);
+
 //        factory.setAdviceChain(retryInterceptor);
-//
-//        return factory;
-//    }
+
+        return factory;
+    }
 
 }

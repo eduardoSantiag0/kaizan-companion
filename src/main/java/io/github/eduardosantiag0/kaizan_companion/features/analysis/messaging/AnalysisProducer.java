@@ -7,6 +7,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.Analysi
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisDTO;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.KatagoQueryBuilder;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.katago.dtos.KatagoQuery;
+import io.github.eduardosantiag0.kaizan_companion.utils.SgfRepair;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.parser.SgfParseException;
@@ -56,16 +57,7 @@ public class AnalysisProducer {
 
         } catch (SgfParseException e) {
 
-            if (e.getMessage() == null ||
-                    !e.getMessage().contains("Invalid property identifier 'CoPyright'")) {
-                throw e;
-            }
-
-            String correctedSgf = sgfContent.replace(
-                    "CoPyright[",
-                    "CP["
-            );
-            sgfContent = correctedSgf;
+            sgfContent = SgfRepair.repair(e, sgfContent);
 
             collection = new SgfParser().parse(
                     sgfContent.getBytes(StandardCharsets.UTF_8)

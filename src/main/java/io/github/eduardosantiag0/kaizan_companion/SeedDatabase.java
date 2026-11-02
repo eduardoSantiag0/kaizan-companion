@@ -55,7 +55,10 @@ public class SeedDatabase implements ApplicationRunner {
         chatEntity = chatRepository.save(chatEntity);
 
         UserInfoEntity userInfo = new UserInfoEntity(
-                chatEntity, ogsAccount, ogsId, email
+                chatEntity
+//                ,ogsAccount,
+//                ogsId,
+//                email
         );
 
         userInfoRepository.save(userInfo);

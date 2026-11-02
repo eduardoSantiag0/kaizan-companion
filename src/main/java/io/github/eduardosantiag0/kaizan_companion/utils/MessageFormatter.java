@@ -28,6 +28,7 @@ public class MessageFormatter {
         String white = root.value("PW").orElse("Unknown");
 
         String match = """
+            \n
             ⚔ THE MATCH
 
             ● %s
@@ -40,6 +41,7 @@ public class MessageFormatter {
 
     public static String formatMyProfile(UserInfoEntity userInfo) {
         return """
+            \n
             ╭─── ⛩ KAIZEN ⛩ ───╮
 
               ◉ MY PROFILE
@@ -51,6 +53,7 @@ public class MessageFormatter {
 
     private static String formatCompleted(String details) {
         return """
+            \n
             ╭─── ⛩ KAIZEN COMPANION ⛩ ───╮
 
                    ● ─┬─ ○
@@ -72,6 +75,7 @@ public class MessageFormatter {
 
     public static String requestsIsInQueue(String correlationId) {
         return """
+            \n
             ⏳ ANALYSIS QUEUED
 
             Your game is waiting to be analyzed.
@@ -87,6 +91,7 @@ public class MessageFormatter {
 
     public static String requestFailed() {
         return """
+            \n
             ┌─ ✕ REQUEST FAILED ✕  ─────────┐
 
               We were not able to process your request.
@@ -100,6 +105,7 @@ public class MessageFormatter {
 
     public static String formatAccountLinked(String identifier, String platform) {
         return """
+            \n
             ╭─── ⛩ KAIZEN ⛩ ───╮
 
               ✓ ACCOUNT LINKED!
@@ -113,6 +119,7 @@ public class MessageFormatter {
 
     public static String formatUnlinked(String target) {
         return """
+            \n
             ⛩ KAIZEN COMPANION
             ━━━━━━━━━━━━━━━━━━━
 
@@ -127,6 +134,7 @@ public class MessageFormatter {
     public static String formatEmailLinked(String email) {
 
         return """
+            \n
             ⛩ KAIZEN COMPANION
             ━━━━━━━━━━━━━━━━━━━
 
@@ -141,6 +149,7 @@ public class MessageFormatter {
     public static String formatQueue(List<AnalysisJobEntity> jobs) {
         if (jobs.isEmpty()) {
             return """
+                \n
                 ✓ QUEUE IS EMPTY
 
                 No pending analyses.
@@ -149,7 +158,9 @@ public class MessageFormatter {
                 """;
         }
 
-        StringBuilder builder = new StringBuilder("""
+        StringBuilder builder = new StringBuilder(
+            """
+            \n
             ◉ KAIZEN QUEUE
             ━━━━━━━━━━━━━━━━━━━
 
@@ -182,7 +193,7 @@ public class MessageFormatter {
     }
 
     public static String formatLinkGoogle(String url) {
-        return "Click on the following link to connect: \n\n" + url;
+        return "Click on the following link to connect: \n" + url;
     }
 
     }

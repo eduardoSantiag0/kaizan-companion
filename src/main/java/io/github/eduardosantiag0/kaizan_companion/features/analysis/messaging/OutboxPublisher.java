@@ -116,6 +116,7 @@ public class OutboxPublisher implements DebeziumEngine.ChangeConsumer<ChangeEven
             AnalysisCreatedEvent event = mapper.readValue(
                     after.get("payload").asString(), AnalysisCreatedEvent.class
             );
+            log.debug("Enviando para o Analysis Listener...");
             rabbitTemplate.convertAndSend(analysisExchange, analysisRoutingKey, event);
             markAsDone(id);
 

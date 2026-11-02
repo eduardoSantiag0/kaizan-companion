@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.AnalysisJobNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.RunPodClient;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.errors.KatagoErrorMessage;
@@ -18,27 +19,27 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.Map;
+
 @Component
 @Slf4j
 public class AnalysisListener {
 
     private final String postUrl;
-    private final RestTemplate rest = new RestTemplate();
     private final AnalysisJobRepository jobRepository;
     private final NotificationService notificationService;
+    private final RunPodClient runPodClient;
 
     public AnalysisListener(
             @Value("${katago.post.url.sync}") String postUrl,
             AnalysisJobRepository jobRepository,
-            NotificationService notificationService
+            NotificationService notificationService, RunPodClient runPodClient
     ) {
         this.postUrl = postUrl;
         this.jobRepository = jobRepository;
         this.notificationService = notificationService;
+        this.runPodClient = runPodClient;
     }
 
     @RabbitListener(
@@ -53,94 +54,96 @@ public class AnalysisListener {
 
         log.debug("Chegou no listener!");
 
+
+//        TODO Checar se já existe essa correlationId
+
         var dto = event.analysisDTO();
         var correlationId = dto.correlationId();
 
-        try {
-            AnalysisJobEntity job = jobRepository
-                    .findByCorrelationId(correlationId)
-                    .orElseThrow(() -> new AnalysisJobNotFoundException(
-                            "Job not found: " + correlationId
-                    ));
 
-            if (job.getJobStatus() == JobStatus.IN_QUEUE) {
-                log.info("Job already in queue {} ", correlationId);
-                channel.basicAck(deliveryTag, false);
-                return;
-            }
+        AnalysisJobEntity job = jobRepository
+                .findByCorrelationId(correlationId)
+                .orElseThrow(() -> new AnalysisJobNotFoundException(
+                        "Job not found: " + correlationId
+                ));
 
-            Map<String, AnalysisCreatedEvent> request =
-                    Map.of("input", event);
-
-            KatagoErrorMessage response = rest.postForObject(
-                    postUrl,
-                    request,
-                    KatagoErrorMessage.class
-            );
-
-
-            if (response == null) {
-                throw new IllegalStateException(
-                        "Empty KataGo response"
-                );
-            }
-
-            job.setJobStatus(JobStatus.IN_QUEUE);
-            jobRepository.save(job);
-
-            if (response.error() != null) {
-                job.setJobStatus(JobStatus.FAILED);
-                jobRepository.save(job);
-                log.error("KataGo rejected {}: {}", correlationId, response);
-                // Falha definitiva, não tentar novamente
-                channel.basicNack(deliveryTag, false, false);
-                notificationService.sendErrorMessage(new ReplyWithText(dto.chatId(),
-                        MessageFormatter.requestFailed()));
-                return;
-            }
-
-
-            try {
-                notificationService.sendMessageToChat(
-                        new ReplyWithText(
-                                dto.chatId(),
-                                MessageFormatter.requestsIsInQueue(
-                                        correlationId.toString()
-                                )
-                        )
-                );
-            } catch (Exception e) {
-                log.error(
-                        "Failed to notify channel {}",
-                        correlationId, e
-                );
-            }
-
-            // Processamento concluído
+        // Idempotent Consumer
+        if (job.getJobStatus() == JobStatus.IN_QUEUE) {
+            log.info("Job already in queue {} ", correlationId);
             channel.basicAck(deliveryTag, false);
-
-            log.info("Análise {} aceita pelo KataGo", correlationId);
-
-        } catch (AnalysisJobNotFoundException e) {
-            log.error("Job inexistente: {}", correlationId, e);
-
-            // Falha definitiva -> DLQ, se configurada
-            channel.basicNack(deliveryTag, false, false);
-
-        } catch (RestClientException e) {
-            log.error("Falha HTTP ao enviar análise {}", correlationId, e);
-
-            // Falha temporária, tentar novamente
-            channel.basicNack(deliveryTag, false, true);
-
-        } catch (RuntimeException e) {
-            log.error("Falha inesperada na análise {}", correlationId, e);
-
-            channel.basicNack(deliveryTag, false, true);
+            return;
         }
+
+        KatagoErrorMessage response = runPodClient.sendEvent(event, postUrl);
+
+        if (response == null) {
+            throw new IllegalStateException(
+                    "Empty KataGo response"
+            );
+        }
+
+        job.setJobStatus(JobStatus.IN_QUEUE);
+        jobRepository.save(job);
+
+        if (response.error() != null) {
+            job.setJobStatus(JobStatus.FAILED);
+            jobRepository.save(job);
+            log.error("KataGo rejected {}: {}", correlationId, response);
+            // Falha definitiva, não tentar novamente
+            channel.basicNack(deliveryTag, false, false);
+            notificationService.sendErrorMessage(new ReplyWithText(dto.chatId(),
+                    MessageFormatter.requestFailed()));
+            return;
+        }
+
+
+        try {
+            notificationService.sendMessageToChat(
+                    new ReplyWithText(
+                            dto.chatId(),
+                            MessageFormatter.requestsIsInQueue(
+                                    correlationId.toString()
+                            )
+                    )
+            );
+        } catch (Exception e) {
+            log.error(
+                    "Failed to notify channel {}",
+                    correlationId, e
+            );
+        }
+
+        // Processamento concluído
+        channel.basicAck(deliveryTag, false);
+
+
+        log.info("Análise {} aceita pelo KataGo", correlationId);
+
     }
+
 }
+
+//    private void exceptionHandling (Throwable e) throws Throwable {
+//        if (e instanceof AnalysisJobNotFoundException) {
+//            log.error("Job inexistente: {}", correlationId, e);
+//
+//            // Falha definitiva -> DLQ, se configurada
+//            channel.basicNack(deliveryTag, false, false);
+//            throw e;
+//        }
+//    }
 
 // Processamento concluído = channel.basicAck(deliveryTag, false);
 // Falha temporária, tentar novamente = basicNack(tag, false, true)
 // Falha definitiva, não tentar novamente = basicNack(tag, false, false)
+
+// RunPod offline
+// Nao conseguir notificar o canal
+// Job inexistente
+// Falha inesperada
+
+//Erro	Classificação provável	Estratégia
+//HTTP 400 — Bad Request	Definitiva	Não tentar novamente
+//HTTP 401 — Unauthorized	Configuração/autenticação	Interromper e investigar
+//HTTP 429 — Too Many Requests	Temporária	Retry com backoff
+//HTTP 503 — Service Unavailable	Temporária	Retry com backoff

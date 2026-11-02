@@ -60,6 +60,10 @@ public class UserInfoEntity {
         this.emailAddress = emailAddress;
     }
 
+    public UserInfoEntity(TelegramChatEntity chatEntity, String ogsAccount, Long ogsId) {
+        this.chat = chat;
+    }
+
     @Override
     public String toString() {
         return """

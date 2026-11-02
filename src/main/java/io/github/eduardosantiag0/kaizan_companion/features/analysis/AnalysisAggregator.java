@@ -141,12 +141,16 @@ public class AnalysisAggregator {
                                             byte[][] sgfsInBytes) {
         Optional<UserInfoEntity> optionalUser = userInfoRepository.findByChat(chatEntity);
 
-        optionalUser
-                .map(UserInfoEntity::getEmailAddress)
-                .ifPresent(emailAddress -> emailNotificationProducer.send(
-                        new EmailNotificationEvent(emailAddress, sgfsInBytes,
-                                FilenamePattern.getPlayersName(sgfsInBytes[0]), chatEntity.getUsername())
-                ));
+        if (optionalUser.isPresent() && optionalUser.get().getEmailAddress() != null)
+        {
+            String emailAddress = optionalUser.get().getEmailAddress();
+            emailNotificationProducer.send(
+                    new EmailNotificationEvent(
+                            emailAddress,
+                            sgfsInBytes,
+                            FilenamePattern.getPlayersName(sgfsInBytes[0]),
+                            chatEntity.getUsername()));
+        }
 
         if (chatEntity.isDriveLinked()) {
             driveStorageProducer.send(new DriveStorageEvent(chatEntity.getChatId(), sgfsInBytes,
