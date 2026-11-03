@@ -1,11 +1,10 @@
 package io.github.eduardosantiag0.kaizan_companion.infra.auth;
 
-import com.google.auth.oauth2.TokenStore;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.OAuthConnectionEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.OAuthConnectionRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
-import io.github.eduardosantiag0.kaizan_companion.infra.security.EncryptionService;
+import io.github.eduardosantiag0.kaizan_companion.infra.security.services.EncryptionService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,14 +14,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 
 @Component
 @Slf4j

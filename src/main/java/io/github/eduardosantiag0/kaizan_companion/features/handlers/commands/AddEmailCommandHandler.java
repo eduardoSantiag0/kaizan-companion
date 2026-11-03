@@ -3,6 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 import io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.CommandMisuseException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
@@ -36,8 +37,15 @@ public class AddEmailCommandHandler implements ICommandHandler {
     @Override
     public void executeCommand(Update update) throws TelegramApiException, IOException {
         String[] fullMessage = update.getMessage().getText().split("\\s+");;
-        String email = fullMessage[1];
         Long chatId = update.getMessage().getChatId();
+
+        if (fullMessage.length < 2) {
+            notificationService.sendErrorMessage(new ReplyWithText(
+                    chatId, new CommandMisuseException(getCommand()).getMessage()));
+            return;
+        }
+
+        String email = fullMessage[1];
 
         if (!GeneralValidator.isValidEmail(email)) {
             notificationService.sendErrorMessage(new ReplyWithText(

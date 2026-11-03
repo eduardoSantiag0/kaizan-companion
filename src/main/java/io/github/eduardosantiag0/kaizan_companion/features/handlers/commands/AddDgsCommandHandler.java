@@ -2,6 +2,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.CommandMisuseException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
@@ -11,6 +12,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies
 import io.github.eduardosantiag0.kaizan_companion.features.sources.dgs.dtos.DgsPlayerDTO;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -26,13 +28,20 @@ public class AddDgsCommandHandler implements ICommandHandler {
 
     private static final Pattern UID_PATTERN = Pattern.compile("uid=(\\d+)");
 
+    private final String DGS_BASE_URL;
+
     private final TelegramChatRepository telegramChatRepository;
     private final NotificationService notificationService;
     private final UserInfoRepository userInfoRepository;
     private final RestTemplate rest = new RestTemplate();
 
 
-    public AddDgsCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, UserInfoRepository userInfoRepository) {
+    public AddDgsCommandHandler(
+            @Value("${dgs.baseurl}")
+            String dgsBaseUrl, TelegramChatRepository telegramChatRepository,
+            NotificationService notificationService, UserInfoRepository userInfoRepository) {
+
+        this.DGS_BASE_URL = dgsBaseUrl;
         this.telegramChatRepository = telegramChatRepository;
         this.notificationService = notificationService;
         this.userInfoRepository = userInfoRepository;
@@ -56,7 +65,20 @@ public class AddDgsCommandHandler implements ICommandHandler {
     @Override
     public void executeCommand(Update update) throws TelegramApiException {
         String[] fullMessage = update.getMessage().getText().split("\\s+");
+
+        if (fullMessage.length < 2) {
+            notificationService.sendErrorMessage(new ReplyWithText(
+                    update.getMessage().getChatId(), new CommandMisuseException(getCommand()).getMessage()));
+            return;
+        }
+
         String profileUrl = fullMessage[1];
+        if (!profileUrl.contains(DGS_BASE_URL)) {
+            notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(),
+                    "You must send a valid url of Dragon Go Server!\n"));
+            return;
+//            throw new IllegalArgumentException("Not a DGS url");
+        }
         String uid = extractUid(profileUrl);
 
         log.debug("Linking DGS uid {}", uid);

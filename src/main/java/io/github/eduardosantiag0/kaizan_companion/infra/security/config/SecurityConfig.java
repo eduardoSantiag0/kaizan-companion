@@ -1,6 +1,7 @@
-package io.github.eduardosantiag0.kaizan_companion.infra.security;
+package io.github.eduardosantiag0.kaizan_companion.infra.security.config;
 
 import io.github.eduardosantiag0.kaizan_companion.infra.auth.GoogleAuthSuccesHandler;
+import io.github.eduardosantiag0.kaizan_companion.infra.security.RateLimitingFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,8 +9,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration

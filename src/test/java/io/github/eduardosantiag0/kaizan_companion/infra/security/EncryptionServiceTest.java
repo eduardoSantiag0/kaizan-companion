@@ -1,5 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.infra.security;
 
+import io.github.eduardosantiag0.kaizan_companion.infra.security.services.EncryptionService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

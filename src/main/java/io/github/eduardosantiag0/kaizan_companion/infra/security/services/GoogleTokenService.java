@@ -1,7 +1,5 @@
-package io.github.eduardosantiag0.kaizan_companion.infra.security;
+package io.github.eduardosantiag0.kaizan_companion.infra.security.services;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.OAuthConnectionEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.OAuthConnectionRepository;

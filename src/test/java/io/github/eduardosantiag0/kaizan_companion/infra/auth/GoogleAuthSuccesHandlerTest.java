@@ -2,7 +2,7 @@ package io.github.eduardosantiag0.kaizan_companion.infra.auth;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.OAuthConnectionRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
-import io.github.eduardosantiag0.kaizan_companion.infra.security.EncryptionService;
+import io.github.eduardosantiag0.kaizan_companion.infra.security.services.EncryptionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

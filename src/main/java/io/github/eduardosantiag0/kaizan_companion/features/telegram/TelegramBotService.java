@@ -4,9 +4,11 @@ package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 //import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisService;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.commands.UnknownCommandException;
+import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.CommandMisuseException;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.*;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -108,12 +110,20 @@ public class TelegramBotService
     public void consume(Update update) {
         try {
             handle(update);
-        } catch (Exception e) {
+        }
+        catch (CommandMisuseException e) {
+            notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), e.getMessage()));
+        }
+        catch (UnknownCommandException e) {
+            notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), "Your commando does not exist"));
+        }
+        catch (Exception e) {
             logger.error("Failed to handle update", e);
+            notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), MessageFormatter.requestFailed()));
         }
     }
 
-    private void handle(Update update) throws TelegramApiException, IOException {
+    private void handle(Update update) throws TelegramApiException, IOException, CommandMisuseException{
         String[] fullMessage = update.getMessage().getText().split("\\s+");;
         String command = fullMessage[0];
 

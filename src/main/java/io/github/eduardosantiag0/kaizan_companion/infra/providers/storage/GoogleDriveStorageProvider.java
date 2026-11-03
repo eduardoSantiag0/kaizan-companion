@@ -12,8 +12,8 @@ import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramCh
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.storage.messaging.DriveStorageEvent;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
-import io.github.eduardosantiag0.kaizan_companion.infra.security.EncryptionService;
-import io.github.eduardosantiag0.kaizan_companion.infra.security.GoogleTokenService;
+import io.github.eduardosantiag0.kaizan_companion.infra.security.services.EncryptionService;
+import io.github.eduardosantiag0.kaizan_companion.infra.security.services.GoogleTokenService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
