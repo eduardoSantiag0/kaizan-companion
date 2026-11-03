@@ -126,11 +126,72 @@ public class GoogleAuthSuccesHandler implements AuthenticationSuccessHandler {
 
     private String htmlRedirect() {
         return """
-            <html>
-                <body>
-                    <h2>Google Drive conectado com sucesso!</h2>
-                    <p>Você já pode voltar ao Telegram.</p>
-                </body>
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Kaizen Companion — Google Drive conectado</title>
+            </head>
+
+            <body style="
+                margin: 0;
+                padding: 40px 16px;
+                background-color: #f5f5f5;
+                font-family: Arial, Helvetica, sans-serif;
+                color: #222222;
+            ">
+
+            <table role="presentation" align="center" cellpadding="0" cellspacing="0"
+                   style="
+                       width: 100%;
+                       max-width: 560px;
+                       background-color: #ffffff;
+                       border: 1px solid #e8e8e8;
+                       border-radius: 12px;
+                   ">
+
+                <tr>
+                    <td style="padding: 36px 40px; text-align: center;">
+
+                        <h1 style="
+                            margin: 0 0 16px;
+                            font-size: 26px;
+                            font-weight: 700;
+                            letter-spacing: -0.5px;
+                            color: #171717;
+                        ">
+                            Google Drive conectado com sucesso!
+                        </h1>
+
+                        <p style="
+                            font-size: 15px;
+                            line-height: 1.7;
+                            color: #555555;
+                            margin: 0;
+                        ">
+                            Sua conta do Google foi vinculada ao Kaizen Companion.
+                            <br>
+                            Você já pode voltar ao Telegram.
+                        </p>
+
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Footer -->
+            <p style="
+                text-align: center;
+                font-size: 12px;
+                color: #999999;
+                margin-top: 24px;
+                line-height: 1.6;
+            ">
+                ⛩ KAIZEN COMPANION
+                <br>
+            </p>
+
+            </body>
             </html>
             """;
     }
