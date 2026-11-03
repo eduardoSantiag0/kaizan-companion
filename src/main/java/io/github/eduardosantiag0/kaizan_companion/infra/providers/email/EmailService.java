@@ -1,11 +1,14 @@
 package io.github.eduardosantiag0.kaizan_companion.infra.providers.email;
 
+import com.rabbitmq.client.Channel;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.messaging.EmailNotificationEvent;
 import io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -38,7 +42,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendEmail(EmailNotificationEvent event) {
+    public void sendEmail(EmailNotificationEvent event, Channel channel, long deliveryTag) throws IOException {
         try {
             MimeMessage message = mailSender.createMimeMessage();
 
@@ -83,9 +87,28 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("SGF analysis email accepted by SMTP server: {}", event.to());
+            channel.basicAck(deliveryTag, false);
 
         } catch (MessagingException e) {
-            log.error("Failed to send SGF analysis email to {}: {}", event.to(), e.getMessage());
+            // Falha ao montar a mensagem (endereço inválido, anexos, template)
+            log.error("Falha ao montar o e-mail de análise para {}: {}", event.to(), e.getMessage(), e);
+            channel.basicNack(deliveryTag, false, false);
+
+        }
+        catch (MailAuthenticationException e) {
+            log.error("Falha de autenticação SMTP ao enviar e-mail para {}", event.to(), e);
+            channel.basicNack(deliveryTag, false, false);
+
+        }
+        catch (MailException e) {
+            // Falha ao falar com o servidor SMTP (conexão, timeout) — transitória.
+            log.error("Falha ao enviar e-mail de análise para {}: {}", event.to(), e.getMessage(), e);
+            channel.basicNack(deliveryTag, false, true);
+
+        }
+        catch (RuntimeException e) {
+            log.error("Falha inesperada ao enviar e-mail de análise para {}", event.to(), e);
+            channel.basicNack(deliveryTag, false, false);
         }
     }
 }

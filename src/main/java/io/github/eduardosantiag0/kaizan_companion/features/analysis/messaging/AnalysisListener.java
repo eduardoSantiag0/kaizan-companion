@@ -146,13 +146,3 @@ public class AnalysisListener {
 // Falha temporária, tentar novamente = basicNack(tag, false, true)
 // Falha definitiva, não tentar novamente = basicNack(tag, false, false)
 
-// RunPod offline
-// Nao conseguir notificar o canal
-// Job inexistente
-// Falha inesperada
-
-//Erro	Classificação provável	Estratégia
-//HTTP 400 — Bad Request	Definitiva	Não tentar novamente
-//HTTP 401 — Unauthorized	Configuração/autenticação	Interromper e investigar
-//HTTP 429 — Too Many Requests	Temporária	Retry com backoff
-//HTTP 503 — Service Unavailable	Temporária	Retry com backoff

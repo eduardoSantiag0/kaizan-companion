@@ -22,14 +22,14 @@ public class EmailQueueListener {
     }
 
     @RabbitListener(
-            queues = "${rabbitmq.queue.external.email}"
+            queues = "${rabbitmq.queue.external.email}",
+            ackMode = "MANUAL"
     )
     public void listen(
             @Payload EmailNotificationEvent event,
             Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag
     ) throws IOException {
-        emailService.sendEmail(event);
-        channel.basicAck(deliveryTag, false);
+        emailService.sendEmail(event, channel, deliveryTag);
     }
 }
