@@ -28,7 +28,18 @@ public class GeneralValidator {
             "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
     );
 
+    private static final Pattern UUID_REGEX =
+            Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+
+
     public boolean isValidEmail(String email) {
         return email != null && EMAIL_PATTERN.matcher(email).matches();
+    }
+
+    public boolean isValidUUID (String uuidString) {
+        if (uuidString == null) {
+            return false;
+        }
+        return UUID_REGEX.matcher(uuidString).matches();
     }
 }

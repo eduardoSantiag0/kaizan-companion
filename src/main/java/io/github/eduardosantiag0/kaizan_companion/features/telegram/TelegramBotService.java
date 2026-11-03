@@ -117,7 +117,6 @@ public class TelegramBotService
         String[] fullMessage = update.getMessage().getText().split("\\s+");;
         String command = fullMessage[0];
 
-
         switch (command) {
             case "/study" ->
                 studyCommandHandler.executeCommand(update);
@@ -151,6 +150,7 @@ public class TelegramBotService
 
             case "/unlink" ->
                 unlinkCommandHandler.executeCommand(update);
+
             case "/add-google-drive" ->
                 addGoogleDriveCommandHandler.executeCommand(update);
 

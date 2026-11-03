@@ -12,6 +12,7 @@ import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAc
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.AccountNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.StorageException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.ChatNotificationException;
+import io.github.eduardosantiag0.kaizan_companion.infra.exceptions.InvalidTicketException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,9 @@ public class GlobalExceptionHandler {
     }
 
     // 409 - Conflict
-    @ExceptionHandler(OgsAccountNotConfiguredException.class)
+    @ExceptionHandler( {
+            OgsAccountNotConfiguredException.class,
+            InvalidTicketException.class })
     public ResponseEntity<ErrorMessageDTO> handleConflict(
             RuntimeException e,
             HttpServletRequest request) {

@@ -19,6 +19,9 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern.resolveFileName;
@@ -40,12 +43,15 @@ public class LocalStorageProvider implements IStorageProvider {
     public void init() {
         log.info("Using storage provider: local");
 
+
+
         try {
-            this.PATH_FOLDER = Files.createDirectories(
-                    Paths.get(fileUploadDir)
-                            .toAbsolutePath()
-                            .normalize()
-            );
+            this.PATH_FOLDER = Paths.get(fileUploadDir)
+                    .toAbsolutePath()
+                    .normalize();
+
+            Files.createDirectories(this.PATH_FOLDER);
+
         } catch (IOException e) {
             throw new StorageException(
                     "Could not initialize storage directory: " + e.getMessage()
@@ -53,18 +59,32 @@ public class LocalStorageProvider implements IStorageProvider {
         }
     }
 
+    private Path validateAndResolvePath(String key) {
+        if (key == null || key.isBlank()) {
+            throw new StorageException("Invalid storage key provided.");
+        }
+
+        Path resolvedPath = PATH_FOLDER.resolve(key).normalize();
+
+        if (!resolvedPath.startsWith(PATH_FOLDER)) {
+            throw new SecurityException("Access denied. Path traversal attack blocked: " + key);
+        }
+
+        return resolvedPath;
+    }
+
+
 
     @Override
     public Path store(byte[] file, GamePhase phase, UUID uuid) {
-        // Extract sgf
         String fileName = resolveFileName(file, phase, uuid);
-        Path filePath = PATH_FOLDER.resolve(fileName);
+
+        Path filePath = validateAndResolvePath(fileName);
 
         try {
             var path = Files.write(filePath, file);
-            log.debug("\n\nFile name: {} in Path: {}\n\n", fileName, filePath );
+            log.debug("\n\nFile name: {} in Path: {}\n\n", fileName, filePath);
             return path;
-
         } catch (IOException e) {
             throw new StorageException(
                     "Could not store file: " + fileName
@@ -72,12 +92,17 @@ public class LocalStorageProvider implements IStorageProvider {
         }
     }
 
+
     @Override
     public Boolean exists(String key) {
-        Path physicalFilePath = Path.of(key).normalize();
-        return Files.exists(physicalFilePath);
+        try {
+            Path physicalFilePath = validateAndResolvePath(key);
+            return Files.exists(physicalFilePath);
+        } catch (SecurityException | StorageException e) {
+            log.warn("Path security violation or invalid input for verification key: {}", key);
+            return false;
+        }
     }
-
     @Override
     public Resource load(String key) {
         try {

@@ -1,5 +1,8 @@
 package io.github.eduardosantiag0.kaizan_companion.infra.auth.ticket;
 
+import io.github.eduardosantiag0.kaizan_companion.infra.exceptions.InvalidTicketException;
+import io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator;
+import org.hibernate.type.descriptor.java.UUIDJavaType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +38,10 @@ public class TicketService {
     }
 
     public Long consume(String id) {
+
+        if (!GeneralValidator.isValidUUID(id)) {
+            throw new InvalidTicketException("Not a UUID");
+        }
 
         UUID uuid = UUID.fromString(id);
 

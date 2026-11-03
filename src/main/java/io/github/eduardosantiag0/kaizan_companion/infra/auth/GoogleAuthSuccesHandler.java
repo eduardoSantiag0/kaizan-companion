@@ -50,7 +50,7 @@ public class GoogleAuthSuccesHandler implements AuthenticationSuccessHandler {
     {
         HttpSession session = request.getSession();
 
-        if (session == null) {
+        if (session == null || session.getAttribute("telegramChatId") == null) {
             response.sendError(400, "Missing Telegram connection");
             return;
         }
