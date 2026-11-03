@@ -42,7 +42,7 @@ public class LeaseReleaserScheduler {
             requeue(job.getCorrelationId());
         }
 
-        log.info("Jobs recuperados: {}", expired.size());
+//        log.info("Jobs recuperados: {}", expired.size());
 
     }
 

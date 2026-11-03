@@ -134,6 +134,9 @@ public class AnalysisAggregator {
 
         chatEntity.setWaitingForAnalysis(false);
 
+        if (sgfsInBytes[0] == null && sgfsInBytes[1] == null && sgfsInBytes[2] == null)
+            return;
+
         dispatchExternalDeliveries(chatEntity, sgfsInBytes);
     }
 

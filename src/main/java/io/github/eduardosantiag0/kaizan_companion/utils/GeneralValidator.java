@@ -11,12 +11,16 @@ import java.util.regex.Pattern;
 public class GeneralValidator {
 
     public static boolean isValidURL(String urlString) {
+        if (urlString == null) {
+            return false;
+        }
+
         try {
             URL url = new URL(urlString);
             url.toURI();
             return true;
         } catch (MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 

@@ -26,12 +26,15 @@ public class RateLimitingFilter implements Filter {
 
     private static final Duration IDLE_BUCKET_TIMEOUT = Duration.ofMinutes(10);
 
+    private static final short BUCKET_CAPACITY = 5;
+    private static final short REFILL_INTERVAL_SECONDS = 1;
+
     private final ConcurrentMap<String, BucketEntry> buckets = new ConcurrentHashMap<>();
 
     private Bucket getBucket(String clientId) {
         BucketEntry entry = buckets.computeIfAbsent(clientId, key ->
                 new BucketEntry(Bucket.builder()
-                        .addLimit(Bandwidth.classic(10, Refill.intervally(1, Duration.ofSeconds(1))))
+                        .addLimit(Bandwidth.classic(BUCKET_CAPACITY, Refill.intervally(1, Duration.ofSeconds(REFILL_INTERVAL_SECONDS))))
                         .build()));
         entry.lastAccess = Instant.now();
         return entry.bucket;
