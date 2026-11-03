@@ -57,8 +57,6 @@ public class AnalysisListener {
 
         log.debug("Chegou no listener!");
 
-//        TODO Checar se já existe essa correlationId
-
         var dto = event.analysisDTO();
         var correlationId = dto.correlationId();
 
@@ -68,21 +66,32 @@ public class AnalysisListener {
                         "Job not found: " + correlationId
                 ));
 
-        // Idempotent Consumer
-        if (job.getJobStatus() == JobStatus.IN_QUEUE) {
-            log.info("Job already in queue {} ", correlationId);
-            channel.basicAck(deliveryTag, false);
-            return;
-        }
 
-        // Adquiriu o claim
-        if (!claimService.claim(job, correlationId)) {
-            return;
+        // Claim atomico: jobId + status
+        switch (job.getJobStatus()) {
+            case ANALYSIS_REQUESTED -> {
+                // Uma thread acabou de pegar o claim
+                if (!claimService.claim(job)) {
+                    log.info("Perdeu a corrida pelo claim do job {}, descartando entrega duplicada",
+                            correlationId);
+                    channel.basicAck(deliveryTag, false);
+                    return;
+                }
+            }
+            case SUBMITTING -> {
+                // Alguem já pegou o claim
+                log.info("Job {} já em processamento (lease até {}), descartando entrega duplicada",
+                        correlationId, job.getLeaseUntil());
+                channel.basicAck(deliveryTag, false);
+                return;
+            }
+            default -> {
+                log.info("Job {} em estado terminal ({}), descartando entrega duplicada",
+                        correlationId, job.getJobStatus());
+                channel.basicAck(deliveryTag, false);
+                return;
+            }
         }
-
-        // o que acontece quando um consumidor consegue adquirir o claim, mas morre antes de enviar a análise ao RunPod?
-        // Criar lease no db: lease_until
-        // Scheduler para colocar o processo em ANALYSIS requested
 
         KatagoErrorMessage response = runPodClient.sendEvent(event, postUrl,
                 channel, deliveryTag);
@@ -125,9 +134,6 @@ public class AnalysisListener {
             throw e;
         }
 
-        // TODO Se o worker cair antes de chegar na proxima linha?
-
-        // Processamento concluído
         channel.basicAck(deliveryTag, false);
 
         log.info("Análise {} aceita pelo KataGo", correlationId);

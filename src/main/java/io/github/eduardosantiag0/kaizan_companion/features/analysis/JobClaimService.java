@@ -1,12 +1,12 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
+import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Service
 public class JobClaimService {
@@ -19,11 +19,17 @@ public class JobClaimService {
         this.jobRepository = jobRepository;
     }
 
-
     @Transactional
-    public boolean claim (AnalysisJobEntity job, UUID correlationId) {
-        job.setLeaseUntil(Instant.now().plusSeconds(LEASE_TIME));
-        return jobRepository.claimJob(correlationId);
+    public boolean claim(AnalysisJobEntity job) {
+        Instant leaseUntil = Instant.now().plusSeconds(LEASE_TIME);
+        boolean claimed = jobRepository.claimJob(job.getId(), leaseUntil);
+
+        if (claimed) {
+            job.setJobStatus(JobStatus.SUBMITTING);
+            job.setLeaseUntil(leaseUntil);
+        }
+
+        return claimed;
     }
 
 }
