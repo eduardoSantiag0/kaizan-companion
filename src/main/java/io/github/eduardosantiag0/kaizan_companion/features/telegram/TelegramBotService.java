@@ -48,6 +48,7 @@ public class TelegramBotService
     private final UnlinkCommandHandler unlinkCommandHandler;
     private final AddDgsCommandHandler addDgsCommandHandler;
     private final AddGoogleDriveCommandHandler addGoogleDriveCommandHandler;
+    private final TelegramClient telegramClient;
 
 
     private static final List<BotCommand> commandList = List.of(
@@ -85,7 +86,9 @@ public class TelegramBotService
         this.unlinkCommandHandler = unlinkCommandHandler;
         this.addDgsCommandHandler = addDgsCommandHandler;
         this.addGoogleDriveCommandHandler = addGoogleDriveCommandHandler;
+        this.telegramClient = telegramClient;
     }
+
 
     public String getBotUsername() {
         return this.botName;

@@ -1,13 +1,9 @@
-package io.github.eduardosantiag0.kaizan_companion.utils;
+package io.github.eduardosantiag0.kaizan_companion.infra.schedulers;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.OUTBOX_EVENTS;
-import io.github.eduardosantiag0.kaizan_companion.domain.entities.OutboxEventEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.OutboxRepository;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class OutboxCleanerScheduler {

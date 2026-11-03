@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface OutboxRepository extends JpaRepository<OutboxEventEntity, UUID> {
@@ -18,4 +19,6 @@ public interface OutboxRepository extends JpaRepository<OutboxEventEntity, UUID>
     @Transactional
     @Query("UPDATE OutboxEventEntity o SET o.type = :type, o.published = true WHERE o.id = :id")
     int markAsDone(@Param("id") UUID id, @Param("type") OUTBOX_EVENTS type);
+
+    Optional<OutboxEventEntity> findFirstByCorrelationIdOrderByCreatedAtDesc(UUID correlationId);
 }

@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.AnalysisJobNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.JobClaimService;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.RunPodClient;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
@@ -30,16 +31,18 @@ public class AnalysisListener {
     private final AnalysisJobRepository jobRepository;
     private final NotificationService notificationService;
     private final RunPodClient runPodClient;
+    private final JobClaimService claimService;
 
     public AnalysisListener(
             @Value("${katago.post.url.sync}") String postUrl,
             AnalysisJobRepository jobRepository,
-            NotificationService notificationService, RunPodClient runPodClient
+            NotificationService notificationService, RunPodClient runPodClient, JobClaimService claimService
     ) {
         this.postUrl = postUrl;
         this.jobRepository = jobRepository;
         this.notificationService = notificationService;
         this.runPodClient = runPodClient;
+        this.claimService = claimService;
     }
 
     @RabbitListener(
@@ -54,12 +57,10 @@ public class AnalysisListener {
 
         log.debug("Chegou no listener!");
 
-
 //        TODO Checar se já existe essa correlationId
 
         var dto = event.analysisDTO();
         var correlationId = dto.correlationId();
-
 
         AnalysisJobEntity job = jobRepository
                 .findByCorrelationId(correlationId)
@@ -74,7 +75,17 @@ public class AnalysisListener {
             return;
         }
 
-        KatagoErrorMessage response = runPodClient.sendEvent(event, postUrl);
+        // Adquiriu o claim
+        if (!claimService.claim(job, correlationId)) {
+            return;
+        }
+
+        // o que acontece quando um consumidor consegue adquirir o claim, mas morre antes de enviar a análise ao RunPod?
+        // Criar lease no db: lease_until
+        // Scheduler para colocar o processo em ANALYSIS requested
+
+        KatagoErrorMessage response = runPodClient.sendEvent(event, postUrl,
+                channel, deliveryTag);
 
         if (response == null) {
             throw new IllegalStateException(
@@ -82,8 +93,6 @@ public class AnalysisListener {
             );
         }
 
-        job.setJobStatus(JobStatus.IN_QUEUE);
-        jobRepository.save(job);
 
         if (response.error() != null) {
             job.setJobStatus(JobStatus.FAILED);
@@ -96,6 +105,8 @@ public class AnalysisListener {
             return;
         }
 
+        job.setJobStatus(JobStatus.IN_QUEUE);
+        jobRepository.save(job);
 
         try {
             notificationService.sendMessageToChat(
@@ -111,27 +122,19 @@ public class AnalysisListener {
                     "Failed to notify channel {}",
                     correlationId, e
             );
+            throw e;
         }
+
+        // TODO Se o worker cair antes de chegar na proxima linha?
 
         // Processamento concluído
         channel.basicAck(deliveryTag, false);
-
 
         log.info("Análise {} aceita pelo KataGo", correlationId);
 
     }
 
 }
-
-//    private void exceptionHandling (Throwable e) throws Throwable {
-//        if (e instanceof AnalysisJobNotFoundException) {
-//            log.error("Job inexistente: {}", correlationId, e);
-//
-//            // Falha definitiva -> DLQ, se configurada
-//            channel.basicNack(deliveryTag, false, false);
-//            throw e;
-//        }
-//    }
 
 // Processamento concluído = channel.basicAck(deliveryTag, false);
 // Falha temporária, tentar novamente = basicNack(tag, false, true)

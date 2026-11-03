@@ -34,7 +34,6 @@ public class AnalysisJobEntity {
     @Setter
     private TelegramChatEntity chat;
 
-
     @Column(name = "original_game",
             columnDefinition = "TEXT")
     @Setter
@@ -65,8 +64,15 @@ public class AnalysisJobEntity {
     @Enumerated(EnumType.STRING)
     private JobStatus jobStatus;
 
+    @Column(name = "lease_until")
+    @Setter
+    private Instant leaseUntil;
+
+    public AnalysisJobEntity(TelegramChatEntity chat, Instant now, UUID correlationId, String source, String originalGame, JobStatus jobStatus) {
+
+    }
+
     public void setJobStatus(JobStatus newStatus) {
-//        if (newStatus == this.jobStatus) throw new RuntimeException("Status already set");
 
         var oldStatus = this.jobStatus;
         this.jobStatus = newStatus;

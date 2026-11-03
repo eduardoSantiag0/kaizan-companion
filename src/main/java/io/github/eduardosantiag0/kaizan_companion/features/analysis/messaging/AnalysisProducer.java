@@ -52,6 +52,7 @@ public class AnalysisProducer {
         UUID correlationId = UUID.randomUUID();
         SgfCollection collection;
 
+        //TODO Fazer repair no arquivo todo de versoes antigas
         try {
             collection = new SgfParser().parse(gameBytes);
 

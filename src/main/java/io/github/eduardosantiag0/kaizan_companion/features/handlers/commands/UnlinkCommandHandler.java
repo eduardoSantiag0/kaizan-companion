@@ -63,10 +63,19 @@ public class UnlinkCommandHandler implements ICommandHandler {
                 .orElseGet(() -> userInfoRepository.save(new UserInfoEntity(chatEntity)));
 
         switch (target) {
-            case "email" -> userInfo.setEmailAddress(null);
+            case "email" ->  {
+                userInfo.setEmailAddress(null);
+                userInfoRepository.save(userInfo);
+            }
             case "ogs" -> {
                 userInfo.setOgsAccountName(null);
                 userInfo.setOgsAccountId(null);
+                userInfoRepository.save(userInfo);
+            }
+            case "drive" -> {
+                chatEntity.setDriveFolderId(null);
+                chatEntity.setDriveLinked(false);
+                telegramChatRepository.save(chatEntity);
             }
             default -> {
                 notificationService.sendErrorMessage(new ReplyWithText(
@@ -76,7 +85,6 @@ public class UnlinkCommandHandler implements ICommandHandler {
             }
         }
 
-        userInfoRepository.save(userInfo);
 
         notificationService.sendMessageToChat(new ReplyWithText(
                 chatId, MessageFormatter.formatUnlinked(target)

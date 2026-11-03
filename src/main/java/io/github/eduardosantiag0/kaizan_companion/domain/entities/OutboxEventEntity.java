@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.domain.entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "outbox_event_db")
+@Getter
 @Setter
 public class OutboxEventEntity {
     @Id
