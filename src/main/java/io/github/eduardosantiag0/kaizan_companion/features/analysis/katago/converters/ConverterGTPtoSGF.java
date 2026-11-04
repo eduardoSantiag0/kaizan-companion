@@ -52,11 +52,4 @@ public class ConverterGTPtoSGF {
         return node;
     }
 
-    //TODO deve aceitar todos os formatos de tabuleiro
-    public static SgfGameTree getSgfFormat(CriticalPoint s) {
-        SgfNode root = movesGTPtoSGF(s.player(), s.move(), DEFAULT_BOARD_SIZE);
-
-        return new SgfGameTree(root);
-    }
-
 }

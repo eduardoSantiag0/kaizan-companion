@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.infra.security;
+package io.github.eduardosantiag0.kaizan_companion.infra.security.config;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -10,13 +10,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @Slf4j
-public class CircuitBreakerQueueController {
+public class CircuitBreakerQueueConfiguration {
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final RabbitListenerEndpointRegistry rabbitRegistry;
 
-    public CircuitBreakerQueueController(CircuitBreakerRegistry circuitBreakerRegistry,
-                                         RabbitListenerEndpointRegistry rabbitRegistry) {
+    public CircuitBreakerQueueConfiguration(CircuitBreakerRegistry circuitBreakerRegistry,
+                                            RabbitListenerEndpointRegistry rabbitRegistry) {
         this.circuitBreakerRegistry = circuitBreakerRegistry;
         this.rabbitRegistry = rabbitRegistry;
     }

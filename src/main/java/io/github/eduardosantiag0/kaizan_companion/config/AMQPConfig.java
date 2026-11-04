@@ -3,6 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.config;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -27,6 +28,7 @@ import static java.time.Duration.*;
 
 
 @Configuration
+@Slf4j
 public class AMQPConfig {
 
 //    O Direct Exchange decide para qual fila a mensagem vai.
@@ -113,6 +115,20 @@ public class AMQPConfig {
                                          MessageConverter messageConverter) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter);
+
+        // mandatory + confirms
+        // (fila cheia com reject-publish, ou sem binding) sem ao menos aparecer no log.
+        rabbitTemplate.setMandatory(true);
+        rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+            if (!ack) {
+                String id = correlationData != null ? correlationData.getId() : "desconhecido";
+                log.error("Broker rejeitou a publicação da mensagem {}: {}", id, cause);
+            }
+        });
+        rabbitTemplate.setReturnsCallback(returned ->
+                log.error("Mensagem sem fila de destino (unroutable): exchange={}, routingKey={}, replyText={}",
+                        returned.getExchange(), returned.getRoutingKey(), returned.getReplyText()));
+
         return rabbitTemplate;
     }
 
@@ -125,7 +141,8 @@ public class AMQPConfig {
         return QueueBuilder.durable(QUEUE_NAME)
                 .quorum()
 //                .ttl((int) Duration.ofDays(2).toMillis())
-//                .maxLength(1000L) //TODO Pensar sobre esses valores
+                .maxLength(1000L)
+                .overflow(QueueBuilder.Overflow.rejectPublish) // rejeita publicações (padrão é drop-head, descartar as mais antigas )
                 .deliveryLimit(MAX_RETRIES)
                 .deadLetterExchange(DEAD_LETTER_EXCHANGE)
                 .deadLetterRoutingKey(DEAD_LETTER_ROUTING_KEY)

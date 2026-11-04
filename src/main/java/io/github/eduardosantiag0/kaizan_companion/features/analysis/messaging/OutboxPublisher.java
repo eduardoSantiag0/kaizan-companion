@@ -24,6 +24,8 @@ import java.util.concurrent.Future;
 @Service
 public class OutboxPublisher implements DebeziumEngine.ChangeConsumer<ChangeEvent<String, String>> {
 
+    private static final long CONFIRM_TIMEOUT_MS = 5000L;
+
     private final RabbitTemplate rabbitTemplate;
     private final OutboxRepository outboxRepository;
     private final ObjectMapper mapper;
@@ -117,7 +119,11 @@ public class OutboxPublisher implements DebeziumEngine.ChangeConsumer<ChangeEven
                     after.get("payload").asString(), AnalysisCreatedEvent.class
             );
             log.debug("Enviando para o Analysis Listener...");
-            rabbitTemplate.convertAndSend(analysisExchange, analysisRoutingKey, event);
+            rabbitTemplate.invoke(operations -> { // waitForConfirmsOrDie
+                operations.convertAndSend(analysisExchange, analysisRoutingKey, event);
+                operations.waitForConfirmsOrDie(CONFIRM_TIMEOUT_MS);
+                return null;
+            });
             markAsDone(id);
 
             log.info("Outbox event {} publicado", id);

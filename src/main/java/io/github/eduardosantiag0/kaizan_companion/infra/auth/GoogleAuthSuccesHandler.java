@@ -70,7 +70,6 @@ public class GoogleAuthSuccesHandler implements AuthenticationSuccessHandler {
             log.debug("Provider: {} e ProviderId: {}", provider, providerId);
 
             TelegramChatEntity chatEntity = chatRepository.findById(chatId)
-                    //TODO Criar TelegramChatNotFoundException(chatId));
                     .orElseThrow(() -> new RuntimeException("Chat not found"));
 
 

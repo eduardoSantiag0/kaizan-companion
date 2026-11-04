@@ -26,6 +26,8 @@ import java.util.UUID;
 @Service
 public class AnalysisProducer {
 
+    private static final int MAX_REPAIR_ATTEMPTS = 3;
+
     private final JobSubmissionService jobSubmissionService;
     private final KatagoQueryBuilder queryBuilder;
     private final RabbitTemplate rabbitTemplate;
@@ -52,18 +54,10 @@ public class AnalysisProducer {
         UUID correlationId = UUID.randomUUID();
         SgfCollection collection;
 
-        //TODO Fazer repair no arquivo todo de versoes antigas
         try {
             collection = new SgfParser().parse(gameBytes);
-
         } catch (SgfParseException e) {
-
-            sgfContent = SgfRepair.repair(e, sgfContent);
-
-            collection = new SgfParser().parse(
-                    sgfContent.getBytes(StandardCharsets.UTF_8)
-            );
-
+            collection = repairAndParse(sgfContent, e);
         }
 
         SgfGameTree game = collection.game(0);
@@ -86,5 +80,20 @@ public class AnalysisProducer {
                 event
         );
 
+    }
+
+    private SgfCollection repairAndParse(String sgfContent, SgfParseException error) {
+        for (int attempt = 1; attempt <= MAX_REPAIR_ATTEMPTS; attempt++) {
+            sgfContent = SgfRepair.repair(error, sgfContent);
+
+            try {
+                return new SgfParser().parse(sgfContent.getBytes(StandardCharsets.UTF_8));
+            } catch (SgfParseException e) {
+                log.warn("Tentativa {} de repair do SGF falhou: {}", attempt, e.getMessage());
+                error = e;
+            }
+        }
+
+        throw error;
     }
 }

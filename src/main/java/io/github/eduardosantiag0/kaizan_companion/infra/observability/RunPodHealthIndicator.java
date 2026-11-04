@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.infra;
+package io.github.eduardosantiag0.kaizan_companion.infra.observability;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator;

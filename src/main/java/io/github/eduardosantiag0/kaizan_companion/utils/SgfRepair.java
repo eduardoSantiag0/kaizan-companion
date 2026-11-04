@@ -28,10 +28,10 @@ public class SgfRepair {
                     invalid.substring(0, invalid.length() - 1))
                     && sgf.contains(invalid)) {
 
-                return sgf.replace(invalid, replacement);
+                sgf = sgf.replace(invalid, replacement);
             }
         }
+        return sgf;
 
-        throw e;
     }
 }
