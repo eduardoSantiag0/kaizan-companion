@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.infra.security.config;
+package io.github.eduardosantiag0.kaizan_companion.infra.security.config.runpod;
 
 import io.github.resilience4j.common.bulkhead.configuration.BulkheadConfigCustomizer;
 import org.springframework.context.annotation.Bean;

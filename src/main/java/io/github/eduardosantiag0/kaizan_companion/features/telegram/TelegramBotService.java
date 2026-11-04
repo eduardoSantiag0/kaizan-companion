@@ -3,8 +3,8 @@ package io.github.eduardosantiag0.kaizan_companion.features.telegram;
 
 //import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisService;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.commands.UnknownCommandException;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.CommandMisuseException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.commands.UnknownCommandException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.telegram.CommandMisuseException;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.*;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;

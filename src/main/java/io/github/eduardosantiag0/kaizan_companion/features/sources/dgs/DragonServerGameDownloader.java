@@ -1,6 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.features.sources.dgs;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.sgf.EmptySgfException;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.dgs.dtos.DgsSgfResponseDTO;
 import org.springframework.beans.factory.annotation.Value;

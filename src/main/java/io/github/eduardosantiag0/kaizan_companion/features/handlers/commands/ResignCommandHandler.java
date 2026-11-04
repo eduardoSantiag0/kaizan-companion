@@ -1,7 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.JobStatus;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.CommandMisuseException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.telegram.CommandMisuseException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodCancelledResponse;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHandler;

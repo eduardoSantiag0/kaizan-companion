@@ -2,7 +2,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
 import com.rabbitmq.client.Channel;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.AnalysisJobEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.AnalysisJobNotFoundException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.analysis.AnalysisJobNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.AnalysisJobRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.JobClaimService;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.RunPodClient;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 

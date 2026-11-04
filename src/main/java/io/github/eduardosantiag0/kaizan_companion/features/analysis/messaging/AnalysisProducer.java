@@ -1,7 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis.NullAnalysisQueryException;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.messaging.RabbitMqUnavailableException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.analysis.NullAnalysisQueryException;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.JobSubmissionService;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisCreatedEvent;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.AnalysisDTO;
@@ -13,7 +12,6 @@ import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import io.github.eduardosantiag0.sgf.parser.SgfParseException;
 import io.github.eduardosantiag0.sgf.parser.SgfParser;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;

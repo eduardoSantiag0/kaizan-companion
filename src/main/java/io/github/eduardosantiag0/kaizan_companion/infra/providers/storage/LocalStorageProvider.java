@@ -1,12 +1,10 @@
 package io.github.eduardosantiag0.kaizan_companion.infra.providers.storage;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.storage.StorageException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.storage.StorageException;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
@@ -19,9 +17,6 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import static io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern.resolveFileName;

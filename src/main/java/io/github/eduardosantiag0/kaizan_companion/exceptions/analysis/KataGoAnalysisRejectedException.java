@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.domain.exception.analysis;
+package io.github.eduardosantiag0.kaizan_companion.exceptions.analysis;
 
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.errors.KatagoErrorMessage;
 

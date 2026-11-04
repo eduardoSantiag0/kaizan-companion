@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.domain.exception.sources;
+package io.github.eduardosantiag0.kaizan_companion.exceptions.sources;
 
 public class InvalidGameUrlException extends RuntimeException {
     public InvalidGameUrlException(String message) {

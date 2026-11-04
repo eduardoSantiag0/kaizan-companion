@@ -1,6 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.utils;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.SgfForbiddenFormat;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.sgf.SgfForbiddenFormat;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.sgf.model.SgfCollection;
 import io.github.eduardosantiag0.sgf.model.SgfGameTree;
@@ -22,10 +22,6 @@ public class FilenamePattern {
 
         String black = root.value("PB").orElse("Black");
         String white = root.value("PW").orElse("White");
-
-//        if (String.valueOf(forbiddenChars).contains(black) || String.valueOf(forbiddenChars).contains(white) ) {
-//            throw new SgfForbiddenFormat("Sgf contains forbidden characters");
-//        }
 
         for (String forbidden : forbiddenChars) {
             if (black.contains(forbidden) && !black.equals("Black")) {

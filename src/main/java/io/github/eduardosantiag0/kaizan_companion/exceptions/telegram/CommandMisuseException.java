@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram;
+package io.github.eduardosantiag0.kaizan_companion.exceptions.telegram;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 

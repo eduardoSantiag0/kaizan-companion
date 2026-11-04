@@ -1,6 +1,6 @@
 package io.github.eduardosantiag0.kaizan_companion.features.storage.messaging;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.messaging.RabbitMqUnavailableException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.messaging.RabbitMqUnavailableException;
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;

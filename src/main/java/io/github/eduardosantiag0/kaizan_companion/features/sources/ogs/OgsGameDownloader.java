@@ -1,7 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.features.sources.ogs;
 
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.LastGameNotFoundException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.sgf.EmptySgfException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.sources.LastGameNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.PaginatedGameList;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +11,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
-
-import java.util.Arrays;
-import java.util.regex.Pattern;
 
 @Component
 @Slf4j

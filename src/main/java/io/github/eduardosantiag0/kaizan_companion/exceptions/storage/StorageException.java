@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.domain.exception.storage;
+package io.github.eduardosantiag0.kaizan_companion.exceptions.storage;
 
 
 public class StorageException extends RuntimeException {

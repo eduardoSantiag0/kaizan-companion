@@ -1,4 +1,4 @@
-package io.github.eduardosantiag0.kaizan_companion.domain.exception;
+package io.github.eduardosantiag0.kaizan_companion.exceptions;
 
 import java.time.Instant;
 

@@ -1,9 +1,9 @@
 package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.messaging.RabbitMqUnavailableException;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.telegram.CommandMisuseException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.messaging.RabbitMqUnavailableException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.sgf.EmptySgfException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.telegram.CommandMisuseException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging.AnalysisProducer;
@@ -12,7 +12,6 @@ import io.github.eduardosantiag0.kaizan_companion.features.sources.SourceContext
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
-import io.github.eduardosantiag0.sgf.parser.SgfParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.core.io.ByteArrayResource;

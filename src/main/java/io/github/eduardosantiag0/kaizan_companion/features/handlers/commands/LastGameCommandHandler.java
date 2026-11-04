@@ -2,9 +2,9 @@ package io.github.eduardosantiag0.kaizan_companion.features.handlers.commands;
 
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.TelegramChatEntity;
 import io.github.eduardosantiag0.kaizan_companion.domain.entities.UserInfoEntity;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.GlobalExceptionHandler;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
-import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.OgsAccountNotConfiguredException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.GlobalExceptionHandler;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.sgf.EmptySgfException;
+import io.github.eduardosantiag0.kaizan_companion.exceptions.sources.OgsAccountNotConfiguredException;
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
