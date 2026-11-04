@@ -6,6 +6,8 @@ import io.github.eduardosantiag0.kaizan_companion.features.analysis.errors.Katag
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
+import io.github.resilience4j.bulkhead.BulkheadFullException;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.extern.slf4j.Slf4j;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -30,6 +32,7 @@ public class RunPodClient {
         this.notificationService = notificationService;
     }
 
+    @Bulkhead(name = "runpod-bulkhead")
     @CircuitBreaker(name = "runpod", fallbackMethod = "fallbackMethod")
     public KatagoErrorMessage sendEvent(AnalysisCreatedEvent event, String postUrl, Channel channel, long deliveryTag) throws IOException {
         Map<String, AnalysisCreatedEvent> request = Map.of("input", event);
@@ -43,6 +46,13 @@ public class RunPodClient {
 
     private KatagoErrorMessage fallbackMethod(AnalysisCreatedEvent event, String postUrl, Channel channel, long deliveryTag, Exception e) throws IOException {
         UUID correlationId = event.analysisDTO().correlationId();
+
+        if (e instanceof BulkheadFullException) {
+            //TODO Cache?
+            log.warn("Bulkhead cheio para o job {}. Reenfileirando para tentar mais tarde.", correlationId);
+            channel.basicNack(deliveryTag, false, true);
+            return null;
+        }
 
         if (e instanceof CallNotPermittedException) {
             // Circuito aberto
