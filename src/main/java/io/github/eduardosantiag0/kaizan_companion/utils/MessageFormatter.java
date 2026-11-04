@@ -103,6 +103,21 @@ public class MessageFormatter {
 
     }
 
+
+    public static String systemOffline() {
+        return """
+        \n
+        ┌─ ✕ SYSTEM OFFLINE ✕ ───────────┐
+
+          Our service is temporarily unavailable.
+
+          ↻ Please try again later.
+
+        └───────────────────────────────┘
+        """;
+    }
+
+
     public static String formatAccountLinked(String identifier, String platform) {
         return """
             \n

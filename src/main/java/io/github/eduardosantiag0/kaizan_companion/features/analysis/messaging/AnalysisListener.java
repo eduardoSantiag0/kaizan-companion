@@ -46,6 +46,7 @@ public class AnalysisListener {
     }
 
     @RabbitListener(
+            id = "analysisListenerContainer",
             queues = "${rabbitmq.queue.analysis}",
             ackMode = "MANUAL"
     )
@@ -95,12 +96,6 @@ public class AnalysisListener {
 
         KatagoErrorMessage response = runPodClient.sendEvent(event, postUrl,
                 channel, deliveryTag);
-
-        if (response == null) {
-            throw new IllegalStateException(
-                    "Empty KataGo response"
-            );
-        }
 
 
         if (response.error() != null) {
