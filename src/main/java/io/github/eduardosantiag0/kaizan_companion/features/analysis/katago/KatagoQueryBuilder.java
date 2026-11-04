@@ -16,18 +16,30 @@ public class KatagoQueryBuilder {
     public KatagoQuery buildQuery(SgfGameTree game, UUID correlationId) {
         SgfNode root = game.root();
 
-        String whiteRank = root.value("WR").orElseThrow();
-        String blackRank = root.value("BR").orElseThrow();
+        String whiteRank = String.valueOf(root.value("WR"));
+        String blackRank = String.valueOf(root.value("BR"));
+        String humanSLProfile;
 
-        String humanSLProfile =
-                "rank_" + blackRank.toLowerCase()
-                        + "_"
-                        + whiteRank.toLowerCase();
+        if (whiteRank.isEmpty() && !blackRank.isEmpty()) {
+            humanSLProfile =
+                    "rank_" + blackRank.toLowerCase();
+        } else if (blackRank.isEmpty() && !whiteRank.isEmpty()) {
+            humanSLProfile =
+                    "rank_" + whiteRank.toLowerCase();
+        } else {
+            humanSLProfile =
+                    "rank_" + blackRank.toLowerCase()
+                            + "_" + whiteRank.toLowerCase();
+        }
+
+
+
 
         String size = root.value("SZ").orElse("19");
         String[] dimensions = size.split(":");
 
         int boardXSize = Integer.parseInt(dimensions[0]);
+        System.out.println(Arrays.toString(dimensions));
         int boardYSize = dimensions.length > 1
                 ? Integer.parseInt(dimensions[1])
                 : boardXSize;
@@ -38,13 +50,18 @@ public class KatagoQueryBuilder {
             analyseTurns.add(i);
         }
 
+        float komi = 0;
+        if (!root.value("KM").get().isEmpty()) {
+            komi = Float.parseFloat(root.value("KM").get());
+        }
+
 
         return KatagoQuery.builder()
                 .id(String.valueOf(correlationId))
-                .initialStone(ConverterSGFtoGTP.convertInitialStonesToGTP(game.root(), Integer.parseInt(size)))
-                .moves(ConverterSGFtoGTP.convertMovesSGFtoGTP(game.moves(), Integer.parseInt(size)))
+                .initialStone(ConverterSGFtoGTP.convertInitialStonesToGTP(game.root(), Integer.parseInt(dimensions[0])))
+                .moves(ConverterSGFtoGTP.convertMovesSGFtoGTP(game.moves(), Integer.parseInt(dimensions[0])))
                 .rules(root.value("RU").get())
-                .komi(Float.parseFloat(root.value("KM").get()))
+                .komi(komi)
                 .boardXSize(boardXSize)
                 .boardYSize(boardYSize)
                 .analyzeTurns(analyseTurns)

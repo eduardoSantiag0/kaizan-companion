@@ -21,6 +21,8 @@ public class DragonServerGameDownloader implements ISourceStrategy {
     @Value("${dgs.baseurl}")
     private String BASE_URL;
     private final RestTemplate rest = new RestTemplate();
+    private static final String QUERY_DELIMITERS = "[/?&]";
+
 
     @Override
     public String extractId(String url) {
@@ -29,8 +31,10 @@ public class DragonServerGameDownloader implements ISourceStrategy {
         if (startPos == -1) {
             throw new IllegalArgumentException("Invalid DGS game URL: " + url);
         }
+        String gameId = url.substring(startPos + s.length());
+        String [] idStripped = gameId.splitWithDelimiters(QUERY_DELIMITERS, 0);
 
-        return url.substring(startPos + s.length());
+        return idStripped[0];
     }
 
     @Override

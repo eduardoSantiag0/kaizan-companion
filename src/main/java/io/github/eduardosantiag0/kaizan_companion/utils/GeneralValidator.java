@@ -3,6 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.utils;
 import lombok.experimental.UtilityClass;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Pattern;
@@ -41,5 +42,30 @@ public class GeneralValidator {
             return false;
         }
         return UUID_REGEX.matcher(uuidString).matches();
+    }
+
+    public boolean validateHost(String url, String domain) {
+        if (url == null) {
+            return false;
+        }
+
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+
+            if (host == null) {
+                return false;
+            }
+
+            if (host.equals(domain) || host.endsWith(domain)) {
+                return true;
+            }
+
+        } catch (Exception e) {
+            // Handle malformed URLs gracefully by rejecting them
+            return false;
+        }
+
+        return false;
     }
 }

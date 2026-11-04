@@ -3,20 +3,17 @@ package io.github.eduardosantiag0.kaizan_companion.features.sources.ogs;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sgf.EmptySgfException;
 import io.github.eduardosantiag0.kaizan_companion.domain.exception.sources.LastGameNotFoundException;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.contracts.ISourceStrategy;
-import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.GameDetail;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.dtos.PaginatedGameList;
-import io.github.eduardosantiag0.sgf.model.SgfGameTree;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 @Component
 @Slf4j
@@ -26,6 +23,7 @@ public class OgsGameDownloader implements ISourceStrategy {
     @Value("${ogs.baseurl}")
     private String BASE_URL;
     private final RestTemplate rest = new RestTemplate();
+    private static final String QUERY_DELIMITERS = "[/?&]";
 
     public OgsGameDownloader() {
     }
@@ -39,7 +37,10 @@ public class OgsGameDownloader implements ISourceStrategy {
             throw new IllegalArgumentException("Invalid OGS game URL: " + url);
         }
 
-        return url.substring(startPos + s.length());
+        String gameId = url.substring(startPos + s.length());
+        String [] idStripped = gameId.splitWithDelimiters(QUERY_DELIMITERS, 0);
+
+        return idStripped[0];
     }
 
     @Override

@@ -3,11 +3,10 @@ package io.github.eduardosantiag0.kaizan_companion.features.analysis.katago;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.AnalysisAggregator;
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.runpod.RunPodResponse;
 import jakarta.mail.MessagingException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -17,14 +16,28 @@ public class KatagoController {
 
     private final AnalysisAggregator aggregator;
 
-    public KatagoController(AnalysisAggregator aggregator) {
+    private static final String RUNPOD_SECRET_HEADER = "X-Kaizen-Secret";
+
+    private final String RUNPOD_HEADER_SECRET;
+
+    public KatagoController(AnalysisAggregator aggregator,
+                            @Value("${katago.runpod.header-secret}")
+                            String runpodHeaderSecret)
+    {
         this.aggregator = aggregator;
+        RUNPOD_HEADER_SECRET = runpodHeaderSecret;
     }
 
     @PostMapping
-    public ResponseEntity<Void>  receiveAnalysis(@RequestBody RunPodResponse response) throws IOException, MessagingException {
+    public ResponseEntity<Void> receiveAnalysis(
+            @RequestHeader(value = RUNPOD_SECRET_HEADER, required = false) String secret,
+            @RequestBody RunPodResponse response) throws IOException, MessagingException
+    {
+        if (secret == null || !secret.equals(RUNPOD_HEADER_SECRET)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         aggregator.handleResponse(response);
         return ResponseEntity.ok().build();
-
     }
 }
