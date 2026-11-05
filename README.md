@@ -43,7 +43,22 @@ A Telegram bot that:
 
 ## 💬 `/study` — From command to analysis
 
-![KataGo Analysis Pipeline](./images/KataGo%20Analysis%20Pipeline-2.svg)
+```mermaid
+flowchart LR
+    U([User]) -->|"/study url"| SCH[StudyCommandHandler]
+    SCH --> AP[AnalysisProducer]
+    AP -->|"same transaction"| DB[(Postgres + Outbox)]
+    DB -->|"WAL"| CDC[Debezium]
+    CDC --> MQ[(RabbitMQ)]
+    MQ --> AL[AnalysisListener]
+    AL -->|"circuit breaker + bulkhead"| RP[RunPodClient]
+    RP --> KG[[KataGo GPU worker]]
+    KG -->|"signed callback"| KC[KatagoController]
+    KC --> AG[AnalysisAggregator]
+    AG -->|"opening / middlegame / endgame"| TG([Telegram chat])
+```
+
+👉 [View as SVG](./images/KataGo%20Analysis%20Pipeline-2.svg)
 
 1. **Receive** — The Telegram webhook validates the incoming request; `StudyCommandHandler` resolves the game URL and source.
 
