@@ -45,7 +45,7 @@ public class EmailService {
 
     public void sendEmail(EmailNotificationEvent event, Channel channel, long deliveryTag) throws IOException, MessagingException {
 
-            if (GeneralValidator.isValidEmail(event.to())) {
+            if (!GeneralValidator.isValidEmail(event.to())) {
                 throw new MessagingException("Not a valid email");
             }
 

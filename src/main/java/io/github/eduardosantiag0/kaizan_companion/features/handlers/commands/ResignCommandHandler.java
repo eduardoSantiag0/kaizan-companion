@@ -8,6 +8,8 @@ import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHand
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -20,11 +22,16 @@ public class ResignCommandHandler implements ICommandHandler {
 
     record CancelRequest(String correlationId){}
 
+    private static final String RUNPOD_SECRET_HEADER = "X-Kaizen-Secret";
+
     private final RestTemplate rest = new RestTemplate();
     private final NotificationService notificationService;
 
     @Value("${katago.runpod.status.url}")
     private String RUNPOD_URL;
+
+    @Value("${katago.runpod.header-secret}")
+    private String runpodHeaderSecret;
 
     private final String endpoint = "/cancel";
 
@@ -49,9 +56,12 @@ public class ResignCommandHandler implements ICommandHandler {
 
         String jobId = fullMessage[1];
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(RUNPOD_SECRET_HEADER, runpodHeaderSecret);
+
         RunPodCancelledResponse response = rest.postForObject(
                 RUNPOD_URL+endpoint,
-                new CancelRequest(jobId),
+                new HttpEntity<>(new CancelRequest(jobId), headers),
                 RunPodCancelledResponse.class
         );
 

@@ -47,7 +47,6 @@ public class EncryptionService {
 
     public String encrypt(String data) {
         if (data == null) return null;
-        if (data.length() > 32) return null;
         try {
             byte[] iv = generateNonce();
 
