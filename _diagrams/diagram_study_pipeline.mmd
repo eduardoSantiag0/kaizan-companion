@@ -1,0 +1,60 @@
+flowchart TB
+U(["User"]) -->|"/study URL"| TG["Telegram Bot API"]
+
+    subgraph IN["1. Request & Job Creation"]
+        direction LR
+        WH["Webhook<br/>Token validation + Rate limiting"]
+        SCH["StudyCommandHandler"]
+        AP["AnalysisProducer"]
+        DB[("PostgreSQL<br/>Jobs + Outbox")]
+
+        WH --> SCH --> AP
+        AP -->|"Atomic transaction"| DB
+    end
+
+    subgraph Q["2. Reliable Messaging"]
+        direction LR
+        CDC["Debezium CDC"]
+        MQ[("RabbitMQ")]
+        AL["AnalysisListener"]
+        CLAIM["Atomic Job Claim"]
+
+        CDC -->|"Outbox event"| MQ
+        MQ --> AL --> CLAIM
+    end
+
+    subgraph GPU["3. Resilient GPU Processing"]
+        direction LR
+        RPC["RunPodClient<br/>Circuit Breaker + Bulkhead"]
+        KG[["RunPod<br/>KataGo GPU Worker"]]
+
+        RPC -->|"Submit analysis"| KG
+    end
+
+    subgraph RESULT["4. Callback & Delivery"]
+        direction LR
+        KC["KatagoController<br/>Signature validation"]
+        AG["AnalysisAggregator"]
+        NS["NotificationService"]
+
+        KC --> AG --> NS
+    end
+
+    TG -->|"HTTPS webhook"| WH
+    DB -->|"PostgreSQL WAL"| CDC
+    CLAIM <-->|"Claim job in DB"| DB
+    CLAIM -->|"Claim acquired"| RPC
+    KG -->|"Signed callback"| KC
+    AG -->|"Persist results"| DB
+    NS -->|"Opening / Middlegame / Endgame"| TG
+
+    classDef storage fill:#123e36,stroke:#36b48d,color:#fff
+    classDef messaging fill:#183e59,stroke:#60a5fa,color:#fff
+    classDef compute fill:#493719,stroke:#e7ad53,color:#fff
+    classDef security fill:#452a40,stroke:#ce85c2,color:#fff
+
+    class DB,MQ storage
+    class CDC,AL,AP messaging
+    class RPC,KG compute
+    class WH,KC,CLAIM security
+```

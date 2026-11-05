@@ -33,3 +33,10 @@ build/
 .vscode/
 tmp/
 /${project.build.directory}/
+
+### Visual Studio ###
+.vs/
+
+### Secrets / local runtime state ###
+.env
+data/

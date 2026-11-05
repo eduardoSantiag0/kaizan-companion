@@ -1,0 +1,18 @@
+flowchart LR
+MQ[("RabbitMQ")] --> C["Consumer"]
+C --> CLAIM{"Claim acquired?"}
+
+    CLAIM -->|No| ACK["ACK / Skip"]
+    CLAIM -->|Yes| CB{"Circuit Breaker"}
+
+    CB -->|Open| RETRY["Deferred retry"]
+    CB -->|Closed| RP["RunPodClient"]
+
+    RP -->|Success| DONE["Await callback"]
+    RP -->|Transient failure| RETRY
+    RETRY -->|Retry exhausted| DLQ[("Dead Letter Queue")]
+
+    classDef error fill:#4b2630,stroke:#e57373,color:#fff
+    classDef success fill:#163e33,stroke:#40b48c,color:#fff
+    class DLQ,RETRY error
+    class DONE,ACK success
