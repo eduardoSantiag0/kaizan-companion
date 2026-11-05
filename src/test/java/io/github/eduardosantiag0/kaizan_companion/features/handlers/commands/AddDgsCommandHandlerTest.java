@@ -91,4 +91,47 @@ class AddDgsCommandHandlerTest {
             server.stop(0);
         }
     }
+
+    @Test
+    void executeCommand_mustNotBeFooledByTheTrustedDomainAppearingInsideTheUrl() throws Exception {
+        // Regression test: the old check was `profileUrl.contains(DGS_BASE_URL)`, a plain
+        // substring search. Embedding the trusted URL as a query parameter value on an
+        // attacker-controlled host made that check pass while the real GET request still
+        // went to the attacker's host (SSRF) - e.g. the Oracle Cloud metadata endpoint.
+        AtomicBoolean serverWasContacted = new AtomicBoolean(false);
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            serverWasContacted.set(true);
+            byte[] body = "{\"uid\":\"42\",\"handle\":\"attacker\",\"rating\":1500.0,\"rank\":\"1d\"}"
+                    .getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            int port = server.getAddress().getPort();
+            String maliciousUrl = "http://127.0.0.1:" + port
+                    + "/pwn?uid=42&x=https://dragongoserver.net/";
+
+            TelegramChatRepository chatRepository = mock(TelegramChatRepository.class);
+            NotificationService notificationService = mock(NotificationService.class);
+            UserInfoRepository userInfoRepository = mock(UserInfoRepository.class);
+
+            AddDgsCommandHandler handler =
+                    new AddDgsCommandHandler("https://dragongoserver.net/", chatRepository, notificationService, userInfoRepository);
+
+            var update = TelegramFixtures.textUpdate(1L, "/add-account-dragon " + maliciousUrl);
+
+            assertDoesNotThrow(() -> handler.executeCommand(update));
+
+            assertFalse(serverWasContacted.get(),
+                    "the handler fetched a URL whose host is not dragongoserver.net, "
+                            + "even though the trusted domain appeared inside the URL");
+        } finally {
+            server.stop(0);
+        }
+    }
 }

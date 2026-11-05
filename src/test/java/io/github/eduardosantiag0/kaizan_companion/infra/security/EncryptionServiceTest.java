@@ -6,12 +6,27 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Base64;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EncryptionServiceTest {
 
     private static final String KEY_32_ASCII_CHARS = "01234567890123456789012345678901";
+
+    @Test
+    void decrypt_mustReturnTheOriginalPlaintext_afterEncrypt() {
+        // Regression test: decrypt() used to call Cipher.getInstance(ALGORITHM) ("AES", which
+        // defaults to AES/ECB/PKCS5Padding) instead of Cipher.getInstance(TRANSFORMATION)
+        // ("AES/GCM/NoPadding"), so every decrypt() call threw instead of returning the token.
+        EncryptionService service = new EncryptionService(KEY_32_ASCII_CHARS);
+
+        String plaintext = "a-google-access-token";
+        String encrypted = service.encrypt(plaintext);
+
+        assertEquals(plaintext, service.decrypt(encrypted),
+                "decrypt(encrypt(x)) must round-trip back to x");
+    }
 
     @Test
     void encrypt_mustNotProduceIdenticalCiphertextBlocksForIdenticalPlaintextBlocks() {

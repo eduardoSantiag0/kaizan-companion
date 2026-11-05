@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class TelegramBotServiceTest {
 
@@ -47,5 +48,33 @@ class TelegramBotServiceTest {
 
         assertDoesNotThrow(() -> service.consume(update));
         verify(notificationService).sendErrorMessage(any());
+    }
+
+    @Test
+    void consume_whenUpdateHasNoMessage_mustNotThrow_andMustNotAttemptToReply() {
+        // Regression test: Telegram also sends updates without a Message (edited messages,
+        // channel posts, group membership changes, ...). update.getMessage() is null for
+        // those, so handle()/consume() used to NPE instead of just ignoring the update.
+        NotificationService notificationService = mock(NotificationService.class);
+        StudyCommandHandler studyCommandHandler = mock(StudyCommandHandler.class);
+
+        TelegramBotService service = newService(studyCommandHandler, notificationService);
+        var update = TelegramFixtures.withoutMessage();
+
+        assertDoesNotThrow(() -> service.consume(update));
+        verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    void consume_whenMessageHasNoText_mustNotThrow_andMustNotAttemptToReply() {
+        // A sticker, photo or voice message without a caption has a Message but a null text.
+        NotificationService notificationService = mock(NotificationService.class);
+        StudyCommandHandler studyCommandHandler = mock(StudyCommandHandler.class);
+
+        TelegramBotService service = newService(studyCommandHandler, notificationService);
+        var update = TelegramFixtures.textUpdate(1L, null);
+
+        assertDoesNotThrow(() -> service.consume(update));
+        verifyNoInteractions(notificationService);
     }
 }
