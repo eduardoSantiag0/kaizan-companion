@@ -82,7 +82,7 @@ public class EncryptionService {
             byte[] passwordEncrypted = new byte[buffer.remaining()];
             buffer.get(passwordEncrypted);
 
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             GCMParameterSpec spec = new GCMParameterSpec(TAG_LENGTH_BITS, iv);
 
             cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);

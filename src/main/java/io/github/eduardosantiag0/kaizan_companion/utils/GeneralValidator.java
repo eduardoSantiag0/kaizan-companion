@@ -57,12 +57,11 @@ public class GeneralValidator {
                 return false;
             }
 
-            if (host.equals(domain) || host.endsWith(domain)) {
+            if (host.equals(domain) || host.endsWith("." + domain)) {
                 return true;
             }
 
         } catch (Exception e) {
-            // Handle malformed URLs gracefully by rejecting them
             return false;
         }
 

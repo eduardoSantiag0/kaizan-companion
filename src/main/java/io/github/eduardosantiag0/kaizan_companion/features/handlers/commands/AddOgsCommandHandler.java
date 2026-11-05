@@ -19,10 +19,13 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Service
 public class AddOgsCommandHandler implements ICommandHandler {
+
+    private static final String OGS_PLAYERS_ENDPOINT = "https://online-go.com/api/v1/players/";
 
     private final RestTemplate rest = new RestTemplate();
     private final TelegramChatRepository telegramChatRepository;
@@ -41,8 +44,11 @@ public class AddOgsCommandHandler implements ICommandHandler {
     }
 
     private String buidldEndpoint(String username) {
-        return "https://online-go.com/api/v1/players/?username="+username;
-//        https://online-go.com/api/v1/players/?username=SuperDU69
+        // UriComponentsBuilder to preevnt injection in query params
+        return UriComponentsBuilder.fromUriString(OGS_PLAYERS_ENDPOINT)
+                .queryParam("username", username)
+                .encode()
+                .toUriString();
     }
 
     @Override
@@ -101,7 +107,9 @@ public class AddOgsCommandHandler implements ICommandHandler {
             ));
 
         } catch (RestClientException e) {
-            System.out.println("Error fetching data: " + e.getMessage());
+            log.error("Failed to fetch OGS profile for username {}", username, e);
+            notificationService.sendErrorMessage(new ReplyWithText(
+                    update.getMessage().getChatId(), MessageFormatter.requestFailed()));
         }
 
     }

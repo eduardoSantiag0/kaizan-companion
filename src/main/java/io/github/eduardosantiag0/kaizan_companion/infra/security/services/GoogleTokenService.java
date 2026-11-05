@@ -23,6 +23,7 @@ public class GoogleTokenService {
 
     private final OAuthConnectionRepository connRepository;
     private final TelegramChatRepository chatRepository;
+    private final EncryptionService encryptionService;
 
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
@@ -33,9 +34,10 @@ public class GoogleTokenService {
 
     private final String RENEW_ACESS_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
-    public GoogleTokenService(OAuthConnectionRepository repository, TelegramChatRepository chatRepository) throws GeneralSecurityException, IOException {
+    public GoogleTokenService(OAuthConnectionRepository repository, TelegramChatRepository chatRepository, EncryptionService encryptionService) throws GeneralSecurityException, IOException {
         this.connRepository = repository;
         this.chatRepository = chatRepository;
+        this.encryptionService = encryptionService;
     }
 
 
@@ -52,7 +54,7 @@ public class GoogleTokenService {
                 && !token.isBlank()
                 && conn.getExpiresAt() != null
                 && Instant.now().isBefore(conn.getExpiresAt())) {
-            return token;
+            return encryptionService.decrypt(token);
         }
 
         return refreshAccessToken(conn);
@@ -87,7 +89,7 @@ public class GoogleTokenService {
             throw new RuntimeException("Failed to refresh Google token");
         }
 
-        conn.setAccessToken(response.accessToken());
+        conn.setAccessToken(encryptionService.encrypt(response.accessToken()));
 
         conn.setExpiresAt(
                 Instant.now().plusSeconds(

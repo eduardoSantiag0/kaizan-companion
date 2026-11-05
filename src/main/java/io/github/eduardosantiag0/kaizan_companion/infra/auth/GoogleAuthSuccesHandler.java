@@ -86,17 +86,12 @@ public class GoogleAuthSuccesHandler implements AuthenticationSuccessHandler {
 
             String accessTokenValue = authorizedClient.getAccessToken().getTokenValue();
 
-            log.debug("Token encontrado: {}\n", accessTokenValue);
-
-
             String refreshTokenValue = null;
             if (authorizedClient.getRefreshToken() != null) {
                 refreshTokenValue = authorizedClient.getRefreshToken().getTokenValue();
             }
 
-            String encryptedAccess =encryptionService.encrypt(accessTokenValue);
-
-            log.debug(encryptedAccess);
+            String encryptedAccess = encryptionService.encrypt(accessTokenValue);
 
             authConnectionEntity.setAccessToken(encryptedAccess);
 

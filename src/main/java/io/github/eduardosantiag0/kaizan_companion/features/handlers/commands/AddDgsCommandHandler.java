@@ -10,6 +10,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHand
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.dgs.dtos.DgsPlayerDTO;
+import io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ import java.util.regex.Pattern;
 public class AddDgsCommandHandler implements ICommandHandler {
 
     private static final Pattern UID_PATTERN = Pattern.compile("uid=(\\d+)");
+    private static final String DGS_HOST = "dragongoserver.net";
 
     private final String DGS_BASE_URL;
 
@@ -73,11 +75,10 @@ public class AddDgsCommandHandler implements ICommandHandler {
         }
 
         String profileUrl = fullMessage[1];
-        if (!profileUrl.contains(DGS_BASE_URL)) {
+        if (!GeneralValidator.validateHost(profileUrl, DGS_HOST)) {
             notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(),
                     "You must send a valid url of Dragon Go Server!\n"));
             return;
-//            throw new IllegalArgumentException("Not a DGS url");
         }
         String uid = extractUid(profileUrl);
 
@@ -113,7 +114,9 @@ public class AddDgsCommandHandler implements ICommandHandler {
                     chatId, MessageFormatter.formatAccountLinked(dto.username(), "DGS")
             ));
         } catch (RestClientException e) {
-            System.out.println("Error fetching data: " + e.getMessage());
+            log.error("Failed to fetch DGS profile {}", profileUrl, e);
+            notificationService.sendErrorMessage(new ReplyWithText(
+                    update.getMessage().getChatId(), MessageFormatter.requestFailed()));
         }
 
 

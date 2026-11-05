@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
 @RestController
 @RequestMapping("/kaizan/api/v1")
 public class TelegramController {
@@ -21,7 +24,7 @@ public class TelegramController {
     private final ObjectMapper telegramObjectMapper = new ObjectMapper();
 
 
-    public TelegramController(TelegramBotService service, @Value("${telegram.bot.token}") String secretToken) {
+    public TelegramController(TelegramBotService service, @Value("${telegram.webhook.secret-token}") String secretToken) {
         this.service = service;
         this.secretToken = secretToken;
     }
@@ -33,12 +36,19 @@ public class TelegramController {
     {
         String receivedToken = request.getHeader(TELEGRAM_SECRET_HEADER);
 
-        if (receivedToken == null || !receivedToken.equals(secretToken)) {
+        if (receivedToken == null || !constantTimeEquals(receivedToken, secretToken)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied");
         }
 
         Update update = telegramObjectMapper.readValue(rawUpdate, Update.class);
         service.consume(update);
         return ResponseEntity.ok().build();
+    }
+
+    private static boolean constantTimeEquals(String received, String expected) {
+        return MessageDigest.isEqual(
+                received.getBytes(StandardCharsets.UTF_8),
+                expected.getBytes(StandardCharsets.UTF_8)
+        );
     }
 }

@@ -12,7 +12,6 @@ import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramCh
 import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.storage.messaging.DriveStorageEvent;
 import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
-import io.github.eduardosantiag0.kaizan_companion.infra.security.services.EncryptionService;
 import io.github.eduardosantiag0.kaizan_companion.infra.security.services.GoogleTokenService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +45,6 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
 
     private final GoogleTokenService tokenService;
     private final TelegramChatRepository chatRepository;
-    private final EncryptionService encryptionService;
 
     private Path tempPath;
 
@@ -77,7 +75,7 @@ public class GoogleDriveStorageProvider implements IStorageProvider {
 
     private Drive getCredentials(Long chatId) {
 
-        String accessToken = encryptionService.decrypt(tokenService.getValidAccessToken(chatId));
+        String accessToken = tokenService.getValidAccessToken(chatId);
 
         Credential credential = new Credential(
                 BearerToken.authorizationHeaderAccessMethod()

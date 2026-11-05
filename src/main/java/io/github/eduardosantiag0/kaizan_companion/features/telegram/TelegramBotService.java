@@ -112,19 +112,35 @@ public class TelegramBotService
             handle(update);
         }
         catch (CommandMisuseException e) {
-            notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), e.getMessage()));
+            notifyIfPossible(update, e.getMessage());
         }
         catch (UnknownCommandException e) {
-            notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), "Your commando does not exist"));
+            notifyIfPossible(update, "Your commando does not exist");
         }
         catch (Exception e) {
             logger.error("Failed to handle update", e);
-            notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), MessageFormatter.requestFailed()));
+            notifyIfPossible(update, MessageFormatter.requestFailed());
         }
     }
 
+    // update.getMessage() for updates that are not a plain text message (edited messages,
+    // channel posts, group membership changes, stickers/photos without a caption is null for those,
+    //    so any reply must be skipped rather than NPE.
+    private void notifyIfPossible(Update update, String text) {
+        if (update.getMessage() == null) {
+            logger.warn("Could not notify chat: update {} has no message", update.getUpdateId());
+            return;
+        }
+        notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), text));
+    }
+
     private void handle(Update update) throws TelegramApiException, IOException, CommandMisuseException{
-        String[] fullMessage = update.getMessage().getText().split("\\s+");;
+        if (update.getMessage() == null || update.getMessage().getText() == null) {
+            logger.debug("Ignoring update {} without a text message", update.getUpdateId());
+            return;
+        }
+
+        String[] fullMessage = update.getMessage().getText().split("\\s+");
         String command = fullMessage[0];
 
         switch (command) {
