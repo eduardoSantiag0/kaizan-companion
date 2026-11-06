@@ -8,7 +8,7 @@ public enum ECommands {
     ADD_ACCOUNT_DRAGON("/add-account-dragon"),
     ADD_EMAIL("/add-email"),
     RESIGN("/resign"),
-    MY_PROFILE("/my_profile"),
+    MY_PROFILE("/my-profile"),
     UNLINK("/unlink"),
     QUEUE("/queue"),
     RANDOM("/random"),

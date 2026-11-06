@@ -8,13 +8,11 @@ import io.github.eduardosantiag0.kaizan_companion.exceptions.sources.OgsAccountN
 import io.github.eduardosantiag0.kaizan_companion.domain.models.ECommands;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.TelegramChatRepository;
 import io.github.eduardosantiag0.kaizan_companion.domain.repositories.UserInfoRepository;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.messaging.AnalysisProducer;
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.ICommandHandler;
 import io.github.eduardosantiag0.kaizan_companion.features.sources.ogs.OgsGameDownloader;
-import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
-import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
-import io.github.eduardosantiag0.kaizan_companion.infra.IStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -31,16 +29,16 @@ public class LastGameCommandHandler implements ICommandHandler {
     private final NotificationService notificationService;
     private final OgsGameDownloader ogsGameDownloader;
     private final UserInfoRepository userInfoRepository;
-    private final IStorageProvider storageProvider;
+    private final AnalysisProducer analysisProducer;
 
     private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, OgsGameDownloader ogsGameDownloader, UserInfoRepository userInfoRepository, IStorageProvider storageProvider) {
+    public LastGameCommandHandler(TelegramChatRepository telegramChatRepository, NotificationService notificationService, OgsGameDownloader ogsGameDownloader, UserInfoRepository userInfoRepository, AnalysisProducer analysisProducer) {
         this.telegramChatRepository = telegramChatRepository;
         this.notificationService = notificationService;
         this.ogsGameDownloader = ogsGameDownloader;
         this.userInfoRepository = userInfoRepository;
-        this.storageProvider = storageProvider;
+        this.analysisProducer = analysisProducer;
     }
 
     @Override
@@ -75,12 +73,8 @@ public class LastGameCommandHandler implements ICommandHandler {
         chat.setWaitingForAnalysis(true);
         telegramChatRepository.save(chat);
 
+        analysisProducer.execute(chatId, fileData);
 
-        notificationService.sendMessageToChat(
-                new ReplyWithFile(chatId, fileData.getContentAsByteArray(),
-                        MessageFormatter.requestCompleted(String.valueOf(fileData))
-                )
-        );
 
     }
 }

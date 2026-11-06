@@ -17,7 +17,7 @@ public class CommandMisuseException extends RuntimeException {
             case ADD_ACCOUNT_DRAGON -> "Usage: /add-account-dragon <link>";
             case ADD_EMAIL -> "Usage: /add-email <email>";
             case RESIGN -> "Usage: /resign";
-            case MY_PROFILE -> "Usage: /my_profile";
+            case MY_PROFILE -> "Usage: /my-profile";
             case UNLINK -> "Usage: /unlink email|ogs";
             case QUEUE -> "Usage: /queue";
             case RANDOM -> "Usage: /random";

@@ -9,7 +9,6 @@
 ![Telegram](https://img.shields.io/badge/telegram-%2326A5E4.svg?style=for-the-badge&logo=telegram&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
-🇧🇷 [Leia em Português](README.pt-br.md)
 
 ### Asynchronous Go (Baduk) game analysis, delivered through Telegram.
 
@@ -42,6 +41,7 @@ A Telegram bot that:
 ---
 
 ## 💬 `/study` — From command to analysis
+
 
 ```mermaid
 flowchart LR

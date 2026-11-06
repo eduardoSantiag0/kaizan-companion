@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.features.notifications;
 
 import io.github.eduardosantiag0.kaizan_companion.exceptions.telegram.ChatNotificationException;
+import io.github.eduardosantiag0.kaizan_companion.features.analysis.dtos.GamePhase;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,7 +46,7 @@ class NotificationServiceTest {
 
         byte[] sgfBytes = "(;GM[1]FF[4])".getBytes(StandardCharsets.UTF_8);
 
-        service.sendMessageToChat(new ReplyWithFile(42L, sgfBytes, "your analysis is ready"));
+        service.sendMessageToChat(new ReplyWithFile(42L, sgfBytes, "your analysis is ready", GamePhase.opening, UUID.randomUUID()));
 
         verify(telegramClient).execute(any(SendDocument.class));
     }

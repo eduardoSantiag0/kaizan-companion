@@ -3,6 +3,7 @@ package io.github.eduardosantiag0.kaizan_companion.features.notifications;
 import io.github.eduardosantiag0.kaizan_companion.exceptions.telegram.ChatNotificationException;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithFile;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.utils.FilenamePattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -18,8 +19,6 @@ import java.io.ByteArrayInputStream;
 @Service
 @Slf4j
 public class NotificationService {
-
-    private static final String ANALYSIS_FILE_NAME = "analysis.sgf";
 
     private final TelegramClient telegramClient;
 
@@ -38,9 +37,11 @@ public class NotificationService {
     )
     public void sendMessageToChat(ReplyWithFile message) {
 
+        String fileName = FilenamePattern.resolveFileName(message.gameBytes(), message.phase(), message.id());
+
         SendDocument request = SendDocument.builder()
                 .chatId(message.chatId())
-                .document(new InputFile(new ByteArrayInputStream(message.gameBytes()), ANALYSIS_FILE_NAME))
+                .document(new InputFile(new ByteArrayInputStream(message.gameBytes()), fileName))
                 .caption(message.text())
                 .build();
 

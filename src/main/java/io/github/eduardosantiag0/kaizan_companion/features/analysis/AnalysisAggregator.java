@@ -108,7 +108,8 @@ public class AnalysisAggregator {
                 storageProvider.store(data, point.phase(), uuid);
                 notificationService.sendMessageToChat(
                         new ReplyWithFile(response.output().chatId(), data,
-                                MessageFormatter.requestCompleted(data)
+                                MessageFormatter.requestCompleted(data),
+                                point.phase(), uuid
                         )
                 );
             })));
