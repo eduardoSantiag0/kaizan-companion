@@ -39,6 +39,42 @@ public class MessageFormatter {
         return formatCompleted(match);
     }
 
+    public static String formatStart(String firstName) {
+        return """
+            \n
+            ╭─── ⛩ KAIZEN COMPANION ⛩ ───╮
+
+              Welcome, %s!
+
+              I analyse your Go (Baduk) games with
+              KataGo and send back a review split
+              into opening, middlegame and endgame.
+
+            ╰───────────────────────────────╯
+
+            ◉ GET STARTED
+
+              1. Link an account (optional, lets
+                 you use /random and /last_game):
+                 /add-account-ogs <username>
+                 /add-account-dragon <url>
+
+              2. Or just send a game right away:
+                 /study <url>
+                 /collection <url1> <url2> ...
+
+              3. Track and manage:
+                 /queue             pending analyses
+                 /resign            cancel a running one
+                 /my-profile        your linked accounts
+                 /add-email         also receive by email
+                 /add-google-drive  store results in Drive
+                 /unlink            remove a link
+
+            ● ━━━━━━━ ◉ ━━━━━━━ ○
+            """.formatted(firstName);
+    }
+
     public static String formatMyProfile(UserInfoEntity userInfo) {
         return """
             \n
@@ -103,6 +139,18 @@ public class MessageFormatter {
 
     }
 
+
+    public static String unknownMessage() {
+        return """
+            \n
+            ┌─ ✕ I DIDN'T UNDERSTAND ✕ ───────┐
+
+              Send a game link (OGS or Dragon),
+              or use /start to see what I can do.
+
+            └─────────────────────────────────┘
+            """;
+    }
 
     public static String systemOffline() {
         return """

@@ -1,6 +1,7 @@
 package io.github.eduardosantiag0.kaizan_companion.domain.models;
 
 public enum ECommands {
+    START ("/start"),
     STUDY ("/study"),
     COLLECTION("/collection"),
     LAST_GAME("/last_game"),

@@ -47,15 +47,18 @@ public class StudyCommandHandler implements ICommandHandler {
 
     @Override
     public void executeCommand(Update update) throws IOException {
-        String[] fullMessage = update.getMessage().getText().split("\\s+");
+        String[] fullMessage = update.getMessage().getText().trim().split("\\s+");
         Long chatId = update.getMessage().getChatId();
 
-        if (fullMessage.length < 2) {
-            notificationService.sendErrorMessage(new ReplyWithText(chatId, new CommandMisuseException(getCommand()).getMessage()));
-            return;
+        String url;
+        if (fullMessage[0].startsWith("/")) {
+            if (fullMessage.length < 2) {
+                notificationService.sendErrorMessage(new ReplyWithText(chatId, new CommandMisuseException(getCommand()).getMessage()));
+                return;
+            }
+            url = fullMessage[1];
+        } else {url = fullMessage[0];
         }
-
-        String url = fullMessage[1];
 
         try {
             if (!isValidURL(url)) {

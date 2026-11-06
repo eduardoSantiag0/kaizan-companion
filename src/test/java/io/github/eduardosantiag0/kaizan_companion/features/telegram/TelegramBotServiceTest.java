@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -20,6 +21,7 @@ class TelegramBotServiceTest {
         return new TelegramBotService(
                 "KaizanBot",
                 "dummy-token",
+                mock(StartCommandHandler.class),
                 studyCommandHandler,
                 mock(TelegramClient.class),
                 mock(AddOgsCommandHandler.class),
@@ -76,5 +78,31 @@ class TelegramBotServiceTest {
 
         assertDoesNotThrow(() -> service.consume(update));
         verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    void consume_whenMessageIsABareValidUrl_mustRouteToStudyHandler() throws Exception {
+        NotificationService notificationService = mock(NotificationService.class);
+        StudyCommandHandler studyCommandHandler = mock(StudyCommandHandler.class);
+
+        TelegramBotService service = newService(studyCommandHandler, notificationService);
+        var update = TelegramFixtures.textUpdate(1L, "https://online-go.com/game/12345");
+
+        assertDoesNotThrow(() -> service.consume(update));
+        verify(studyCommandHandler).executeCommand(update);
+        verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    void consume_whenMessageIsNeitherACommandNorAUrl_mustReplyWithDefaultError() throws Exception {
+        NotificationService notificationService = mock(NotificationService.class);
+        StudyCommandHandler studyCommandHandler = mock(StudyCommandHandler.class);
+
+        TelegramBotService service = newService(studyCommandHandler, notificationService);
+        var update = TelegramFixtures.textUpdate(1L, "hello there");
+
+        assertDoesNotThrow(() -> service.consume(update));
+        verify(studyCommandHandler, never()).executeCommand(any());
+        verify(notificationService).sendErrorMessage(any());
     }
 }

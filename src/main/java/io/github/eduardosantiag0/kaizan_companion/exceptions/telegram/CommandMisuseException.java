@@ -10,6 +10,7 @@ public class CommandMisuseException extends RuntimeException {
 
     private static String usageFor(ECommands command) {
         return switch (command) {
+            case START -> "Usage: /start";
             case STUDY -> "Usage: /study <link>";
             case COLLECTION -> "Usage: /collection <link1> <link2> ...";
             case LAST_GAME -> "Usage: /last_game";

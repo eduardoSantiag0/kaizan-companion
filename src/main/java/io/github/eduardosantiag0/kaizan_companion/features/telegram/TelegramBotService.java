@@ -8,6 +8,7 @@ import io.github.eduardosantiag0.kaizan_companion.exceptions.telegram.CommandMis
 import io.github.eduardosantiag0.kaizan_companion.features.handlers.commands.*;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.NotificationService;
 import io.github.eduardosantiag0.kaizan_companion.features.notifications.replies.ReplyWithText;
+import io.github.eduardosantiag0.kaizan_companion.utils.GeneralValidator;
 import io.github.eduardosantiag0.kaizan_companion.utils.MessageFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ public class TelegramBotService
     private static final Logger logger = LoggerFactory.getLogger(TelegramBotService.class);
     private final String botName;
     private final String botToken;
+    private final StartCommandHandler startCommandHandler;
     private final StudyCommandHandler studyCommandHandler;
     private final AddOgsCommandHandler addOgsCommandHandler;
     private final LastGameCommandHandler lastGameCommandHandler;
@@ -54,6 +56,7 @@ public class TelegramBotService
 
 
     private static final List<BotCommand> commandList = List.of(
+            new BotCommand(START.name(), "Get started and see what Kaizen Companion can do"),
             new BotCommand(STUDY.name(), "Upload your SGF to analyse your game"),
             new BotCommand(COLLECTION.name(), "Upload several games at once"),
             new BotCommand(LAST_GAME.name(), "Get your latest game"),
@@ -71,10 +74,12 @@ public class TelegramBotService
     public TelegramBotService(
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
+            StartCommandHandler startCommandHandler,
             StudyCommandHandler studyCommandHandler,
             TelegramClient telegramClient, AddOgsCommandHandler addOgsCommandHandler, LastGameCommandHandler lastGameCommandHandler, NotificationService notificationService, ResignCommandHandler resignCommandHandler, CollectionCommandHandler collectionCommandHandler, RandomCommandHandler randomCommandHandler, QueueCommandHandler queueCommandHandler, AddEmailCommandHandler addEmailCommandHandler, MyProfileCommandHandler myProfileCommandHandler, UnlinkCommandHandler unlinkCommandHandler, AddDgsCommandHandler addDgsCommandHandler, AddGoogleDriveCommandHandler addGoogleDriveCommandHandler) {
         this.botName = botName;
         this.botToken = botToken;
+        this.startCommandHandler = startCommandHandler;
         this.studyCommandHandler = studyCommandHandler;
         this.addOgsCommandHandler = addOgsCommandHandler;
         this.lastGameCommandHandler = lastGameCommandHandler;
@@ -140,10 +145,22 @@ public class TelegramBotService
             return;
         }
 
-        String[] fullMessage = update.getMessage().getText().split("\\s+");
+        String[] fullMessage = update.getMessage().getText().trim().split("\\s+");
         String command = fullMessage[0];
 
+        if (!command.startsWith("/")) {
+            if (GeneralValidator.isValidURL(command)) {
+                studyCommandHandler.executeCommand(update);
+            } else {
+                notificationService.sendErrorMessage(new ReplyWithText(update.getMessage().getChatId(), MessageFormatter.unknownMessage()));
+            }
+            return;
+        }
+
         switch (command) {
+            case "/start" ->
+                startCommandHandler.executeCommand(update);
+
             case "/study" ->
                 studyCommandHandler.executeCommand(update);
 
