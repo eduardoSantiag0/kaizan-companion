@@ -5,20 +5,24 @@ public enum ECommands {
     STUDY ("/study"),
     COLLECTION("/collection"),
     LAST_GAME("/last_game"),
-    ADD_ACCOUNT_OGS("/add-account-ogs"),
-    ADD_ACCOUNT_DRAGON("/add-account-dragon"),
-    ADD_EMAIL("/add-email"),
+    ADD_ACCOUNT_OGS("/add_account_ogs"),
+    ADD_ACCOUNT_DRAGON("/add_account_dragon"),
+    ADD_EMAIL("/add_email"),
     RESIGN("/resign"),
-    MY_PROFILE("/my-profile"),
+    MY_PROFILE("/my_profile"),
     UNLINK("/unlink"),
     QUEUE("/queue"),
     RANDOM("/random"),
-    ADD_GOOGLE_DRIVE("/add-google-drive");
+    ADD_GOOGLE_DRIVE("/add_google_drive");
 
-    private final String name;
+    private final String command;
 
     ECommands(String s) {
-        this.name = s;
+        this.command = s;
+    }
+
+    public String getCommand() {
+        return command;
     }
 
 }

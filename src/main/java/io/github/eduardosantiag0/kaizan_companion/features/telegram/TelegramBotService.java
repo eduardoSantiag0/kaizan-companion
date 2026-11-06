@@ -55,22 +55,6 @@ public class TelegramBotService
     private final TelegramClient telegramClient;
 
 
-    private static final List<BotCommand> commandList = List.of(
-            new BotCommand(START.name(), "Get started and see what Kaizen Companion can do"),
-            new BotCommand(STUDY.name(), "Upload your SGF to analyse your game"),
-            new BotCommand(COLLECTION.name(), "Upload several games at once"),
-            new BotCommand(LAST_GAME.name(), "Get your latest game"),
-            new BotCommand(ADD_ACCOUNT_OGS.name(), "Add your OGS username to track your games"),
-            new BotCommand(ADD_ACCOUNT_DRAGON.name(), "Add your Dragon Go Server username to track your games"),
-            new BotCommand(ADD_EMAIL.name(), "Link an email to receive your analysed games"),
-            new BotCommand(ADD_GOOGLE_DRIVE.name(), "Connect your Google Drive to store analysed games"),
-            new BotCommand(MY_PROFILE.name(), "Show your linked accounts and email"),
-            new BotCommand(UNLINK.name(), "Unlink your email or OGS account"),
-            new BotCommand(QUEUE.name(), "Show your pending analysis jobs"),
-            new BotCommand(RANDOM.name(), "Analyse a random OGS game"),
-            new BotCommand(RESIGN.name(), "Cancel a running analysis job")
-    );
-
     public TelegramBotService(
             @Value("${telegram.bot.name}") String botName,
             @Value("${telegram.bot.token}") String botToken,
@@ -164,10 +148,10 @@ public class TelegramBotService
             case "/study" ->
                 studyCommandHandler.executeCommand(update);
 
-            case "/add-account-ogs" ->
+            case "/add_account_ogs" ->
                 addOgsCommandHandler.executeCommand(update);
 
-            case "/add-account-dragon" ->
+            case "/add_account_dragon" ->
                 addDgsCommandHandler.executeCommand(update);
 
             case "/last_game" ->
@@ -185,16 +169,16 @@ public class TelegramBotService
             case "/queue" ->
                 queueCommandHandler.executeCommand(update);
 
-            case "/add-email" ->
+            case "/add_email" ->
                 addEmailCommandHandler.executeCommand(update);
 
-            case "/my-profile" ->
+            case "/my_profile" ->
                 myProfileCommandHandler.executeCommand(update);
 
             case "/unlink" ->
                 unlinkCommandHandler.executeCommand(update);
 
-            case "/add-google-drive" ->
+            case "/add_google_drive" ->
                 addGoogleDriveCommandHandler.executeCommand(update);
 
             default -> {

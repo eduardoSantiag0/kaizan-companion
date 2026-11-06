@@ -56,8 +56,8 @@ public class MessageFormatter {
 
               1. Link an account (optional, lets
                  you use /random and /last_game):
-                 /add-account-ogs <username>
-                 /add-account-dragon <url>
+                 /add_account_ogs <username>
+                 /add_account_dragon <url>
 
               2. Or just send a game right away:
                  /study <url>
@@ -66,9 +66,9 @@ public class MessageFormatter {
               3. Track and manage:
                  /queue             pending analyses
                  /resign            cancel a running one
-                 /my-profile        your linked accounts
-                 /add-email         also receive by email
-                 /add-google-drive  store results in Drive
+                 /my_profile        your linked accounts
+                 /add_email         also receive by email
+                 /add_google_drive  store results in Drive
                  /unlink            remove a link
 
             ● ━━━━━━━ ◉ ━━━━━━━ ○

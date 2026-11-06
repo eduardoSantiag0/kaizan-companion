@@ -4,6 +4,7 @@ import io.github.eduardosantiag0.kaizan_companion.features.telegram.TelegramBotS
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -15,7 +16,8 @@ class TelegramControllerTest {
     @Test
     void onUpdateReceived_mustNotDispatchAnUnauthenticatedForgedUpdate() throws Exception {
         TelegramBotService service = mock(TelegramBotService.class);
-        TelegramController controller = new TelegramController(service, "correct-secret-token");
+        TelegramClient telegramClient = mock(TelegramClient.class);
+        TelegramController controller = new TelegramController(service, telegramClient, "correct-secret-token");
 
         HttpServletRequest forgedRequest = mock(HttpServletRequest.class);
 

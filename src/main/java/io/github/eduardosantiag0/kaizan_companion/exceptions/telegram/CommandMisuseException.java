@@ -14,15 +14,15 @@ public class CommandMisuseException extends RuntimeException {
             case STUDY -> "Usage: /study <link>";
             case COLLECTION -> "Usage: /collection <link1> <link2> ...";
             case LAST_GAME -> "Usage: /last_game";
-            case ADD_ACCOUNT_OGS -> "Usage: /add-account-ogs <username>";
-            case ADD_ACCOUNT_DRAGON -> "Usage: /add-account-dragon <link>";
-            case ADD_EMAIL -> "Usage: /add-email <email>";
+            case ADD_ACCOUNT_OGS -> "Usage: /add_account_ogs <username>";
+            case ADD_ACCOUNT_DRAGON -> "Usage: /add_account_dragon <link>";
+            case ADD_EMAIL -> "Usage: /add_email <email>";
             case RESIGN -> "Usage: /resign";
-            case MY_PROFILE -> "Usage: /my-profile";
+            case MY_PROFILE -> "Usage: /my_profile";
             case UNLINK -> "Usage: /unlink email|ogs";
             case QUEUE -> "Usage: /queue";
             case RANDOM -> "Usage: /random";
-            case ADD_GOOGLE_DRIVE -> "Usage: /add-google-drive";
+            case ADD_GOOGLE_DRIVE -> "Usage: /add_google_drive";
         };
     }
 }
