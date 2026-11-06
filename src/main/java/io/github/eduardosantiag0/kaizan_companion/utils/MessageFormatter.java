@@ -259,4 +259,15 @@ public class MessageFormatter {
         return "Click on the following link to connect: \n" + url;
     }
 
+    public static String noHistory() {
+        return """
+            \n
+            ✓ NO HISTORY YET
+
+            You haven't analysed any games yet.
+
+            ● ─── ◉ ─── ○
+            """;
+    }
+
     }

@@ -42,10 +42,6 @@ A Telegram bot that:
 
 ## 💬 `/study` — From command to analysis
 
-![Study Pipeline](./images/study-pipeline.svg)
-
-
-
 
 ```mermaid
 flowchart LR

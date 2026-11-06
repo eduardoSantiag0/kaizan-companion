@@ -13,7 +13,8 @@ public enum ECommands {
     UNLINK("/unlink"),
     QUEUE("/queue"),
     RANDOM("/random"),
-    ADD_GOOGLE_DRIVE("/add_google_drive");
+    ADD_GOOGLE_DRIVE("/add_google_drive"),
+    HISTORY("/history");
 
     private final String command;
 

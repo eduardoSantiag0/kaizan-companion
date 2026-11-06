@@ -23,6 +23,7 @@ public class CommandMisuseException extends RuntimeException {
             case QUEUE -> "Usage: /queue";
             case RANDOM -> "Usage: /random";
             case ADD_GOOGLE_DRIVE -> "Usage: /add_google_drive";
+            case HISTORY -> "Usage: /history";
         };
     }
 }
